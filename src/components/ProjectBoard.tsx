@@ -35,7 +35,7 @@ export function ProjectBoard({ project }: ProjectBoardProps) {
               
               <div className="max-h-[calc(100vh-8rem)] overflow-y-auto">
                 {/* Multi-column layout within each status */}
-                <div className={`columns-1 ${items.length > 8 ? 'lg:columns-2' : ''} ${items.length > 16 ? 'xl:columns-3' : ''} gap-2 lg:gap-3 space-y-2 lg:space-y-3`}>
+                <div className={`columns-1 ${items.length > 4 ? 'lg:columns-2' : ''} ${items.length > 12 ? 'xl:columns-3' : ''} gap-2 lg:gap-3 space-y-2 lg:space-y-3`}>
                   {items.map((item) => (
                     <div key={item.id} className="break-inside-avoid mb-2 lg:mb-3">
                       <ProjectItemCard item={item} />
