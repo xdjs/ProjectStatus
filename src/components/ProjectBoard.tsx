@@ -21,11 +21,11 @@ export function ProjectBoard({ project }: ProjectBoardProps) {
       </div>
       
       <div className="p-2 sm:p-4 lg:p-6">
-        <div className="grid gap-2 sm:gap-4 lg:gap-6 grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 2xl:grid-cols-5 3xl:grid-cols-6 4xl:grid-cols-8 5xl:grid-cols-10">
+        <div className="grid gap-2 sm:gap-4 lg:gap-6 auto-cols-fr" style={{ gridTemplateColumns: `repeat(${Math.min(Object.keys(groupedItems).length, 4)}, 1fr)` }}>
           {Object.entries(groupedItems).map(([status, items]) => (
             <div key={status} className="space-y-2 lg:space-y-3">
               <div className="flex items-center justify-between sticky top-0 bg-card z-10 pb-2">
-                <h4 className="font-medium text-xs lg:text-sm uppercase tracking-wide text-muted-foreground">
+                <h4 className="font-medium text-xs lg:text-sm xl:text-base uppercase tracking-wide text-muted-foreground">
                   {status}
                 </h4>
                 <span className="text-xs bg-muted text-muted-foreground px-2 py-1 rounded-full">
@@ -33,16 +33,21 @@ export function ProjectBoard({ project }: ProjectBoardProps) {
                 </span>
               </div>
               
-              <div className="space-y-2 lg:space-y-3 min-h-[200px] max-h-[calc(100vh-12rem)] overflow-y-auto">
-                {items.map((item) => (
-                  <ProjectItemCard key={item.id} item={item} />
-                ))}
-                
-                {items.length === 0 && (
-                  <div className="text-center py-4 lg:py-8 text-muted-foreground text-xs lg:text-sm">
-                    No items in this column
-                  </div>
-                )}
+              <div className="max-h-[calc(100vh-8rem)] overflow-y-auto">
+                {/* Multi-column layout within each status */}
+                <div className={`columns-1 ${items.length > 8 ? 'lg:columns-2' : ''} ${items.length > 16 ? 'xl:columns-3' : ''} gap-2 lg:gap-3 space-y-2 lg:space-y-3`}>
+                  {items.map((item) => (
+                    <div key={item.id} className="break-inside-avoid mb-2 lg:mb-3">
+                      <ProjectItemCard item={item} />
+                    </div>
+                  ))}
+                  
+                  {items.length === 0 && (
+                    <div className="text-center py-4 lg:py-8 text-muted-foreground text-xs lg:text-sm">
+                      No items in this column
+                    </div>
+                  )}
+                </div>
               </div>
             </div>
           ))}
