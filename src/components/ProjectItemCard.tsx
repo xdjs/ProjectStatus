@@ -42,13 +42,13 @@ export function ProjectItemCard({ item }: ProjectItemCardProps) {
   }
 
   return (
-    <div className="bg-background border rounded-lg p-4 hover:shadow-md transition-shadow cursor-pointer">
-      <div className="flex items-start justify-between mb-3">
-        <div className="flex items-center space-x-2">
+    <div className="bg-background border rounded-lg p-2 lg:p-3 xl:p-4 hover:shadow-md transition-shadow cursor-pointer text-xs lg:text-sm">
+      <div className="flex items-start justify-between mb-2 lg:mb-3">
+        <div className="flex items-center space-x-1 lg:space-x-2">
           <div className={getStateColor()}>
             {getItemIcon()}
           </div>
-          <span className="text-xs text-muted-foreground uppercase tracking-wide">
+          <span className="text-xs text-muted-foreground uppercase tracking-wide hidden lg:inline">
             {item.type.replace('_', ' ')}
           </span>
         </div>
@@ -60,27 +60,27 @@ export function ProjectItemCard({ item }: ProjectItemCardProps) {
           className="text-muted-foreground hover:text-primary"
           onClick={(e) => e.stopPropagation()}
         >
-          <ExternalLink className="w-4 h-4" />
+          <ExternalLink className="w-3 h-3 lg:w-4 lg:h-4" />
         </a>
       </div>
 
-      <h5 className="font-medium text-sm mb-2 line-clamp-2">
+      <h5 className="font-medium text-xs lg:text-sm mb-1 lg:mb-2 line-clamp-2">
         {item.title}
       </h5>
 
       {item.body && (
-        <p className="text-xs text-muted-foreground mb-3 line-clamp-2">
+        <p className="text-xs text-muted-foreground mb-2 lg:mb-3 line-clamp-1 lg:line-clamp-2">
           {item.body}
         </p>
       )}
 
       {/* Labels */}
       {item.labels.length > 0 && (
-        <div className="flex flex-wrap gap-1 mb-3">
-          {item.labels.slice(0, 3).map((label) => (
+        <div className="flex flex-wrap gap-1 mb-2 lg:mb-3">
+          {item.labels.slice(0, 2).map((label) => (
             <span
               key={label.name}
-              className="inline-flex items-center px-2 py-1 text-xs rounded-full"
+              className="inline-flex items-center px-1 lg:px-2 py-0.5 lg:py-1 text-xs rounded-full"
               style={{
                 backgroundColor: `#${label.color}20`,
                 color: `#${label.color}`,
@@ -88,13 +88,14 @@ export function ProjectItemCard({ item }: ProjectItemCardProps) {
                 borderWidth: '1px'
               }}
             >
-              <Tag className="w-3 h-3 mr-1" />
-              {label.name}
+              <Tag className="w-2 h-2 lg:w-3 lg:h-3 mr-0.5 lg:mr-1" />
+              <span className="hidden lg:inline">{label.name}</span>
+              <span className="lg:hidden">{label.name.substring(0, 3)}</span>
             </span>
           ))}
-          {item.labels.length > 3 && (
+          {item.labels.length > 2 && (
             <span className="text-xs text-muted-foreground">
-              +{item.labels.length - 3} more
+              +{item.labels.length - 2}
             </span>
           )}
         </div>
@@ -102,20 +103,20 @@ export function ProjectItemCard({ item }: ProjectItemCardProps) {
 
       {/* Assignees */}
       {item.assignees.length > 0 && (
-        <div className="flex items-center space-x-2 mb-3">
-          <User className="w-3 h-3 text-muted-foreground" />
+        <div className="flex items-center space-x-1 lg:space-x-2 mb-2 lg:mb-3">
+          <User className="w-2 h-2 lg:w-3 lg:h-3 text-muted-foreground" />
           <div className="flex -space-x-1">
             {item.assignees.slice(0, 3).map((assignee) => (
               <img
                 key={assignee.login}
                 src={assignee.avatarUrl}
                 alt={assignee.login}
-                className="w-5 h-5 rounded-full border-2 border-background"
+                className="w-4 h-4 lg:w-5 lg:h-5 rounded-full border-2 border-background"
                 title={assignee.login}
               />
             ))}
             {item.assignees.length > 3 && (
-              <div className="w-5 h-5 rounded-full bg-muted border-2 border-background flex items-center justify-center">
+              <div className="w-4 h-4 lg:w-5 lg:h-5 rounded-full bg-muted border-2 border-background flex items-center justify-center">
                 <span className="text-xs text-muted-foreground">
                   +{item.assignees.length - 3}
                 </span>
@@ -126,19 +127,20 @@ export function ProjectItemCard({ item }: ProjectItemCardProps) {
       )}
 
       {/* Footer */}
-      <div className="flex items-center justify-between text-xs text-muted-foreground pt-2 border-t">
+      <div className="flex items-center justify-between text-xs text-muted-foreground pt-1 lg:pt-2 border-t">
         <div className="flex items-center space-x-1">
-          <Calendar className="w-3 h-3" />
-          <span>{formatDate(item.updatedAt)}</span>
+          <Calendar className="w-2 h-2 lg:w-3 lg:h-3" />
+          <span className="hidden lg:inline">{formatDate(item.updatedAt)}</span>
         </div>
         
         <div className="flex items-center space-x-1">
           <img
             src={item.author.avatarUrl}
             alt={item.author.login}
-            className="w-4 h-4 rounded-full"
+            className="w-3 h-3 lg:w-4 lg:h-4 rounded-full"
           />
-          <span>{item.author.login}</span>
+          <span className="hidden lg:inline">{item.author.login}</span>
+          <span className="lg:hidden">{item.author.login.substring(0, 8)}</span>
         </div>
       </div>
     </div>
