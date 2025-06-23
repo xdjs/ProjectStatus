@@ -40,7 +40,40 @@ export default function Home() {
     
     // Set up polling for real-time updates
     const interval = setInterval(fetchProjectData, 30000) // Poll every 30 seconds
-    return () => clearInterval(interval)
+    
+    // Keep screen awake for TV display
+    let wakeLock: WakeLockSentinel | null = null
+    
+    const requestWakeLock = async () => {
+      try {
+        if ('wakeLock' in navigator) {
+          wakeLock = await navigator.wakeLock.request('screen')
+          console.log('Screen wake lock activated')
+        }
+      } catch (err) {
+        console.log('Wake lock failed:', err)
+      }
+    }
+    
+    // Request wake lock
+    requestWakeLock()
+    
+    // Re-request wake lock when page becomes visible (in case it was released)
+    const handleVisibilityChange = () => {
+      if (document.visibilityState === 'visible' && wakeLock === null) {
+        requestWakeLock()
+      }
+    }
+    
+    document.addEventListener('visibilitychange', handleVisibilityChange)
+    
+    return () => {
+      clearInterval(interval)
+      document.removeEventListener('visibilitychange', handleVisibilityChange)
+      if (wakeLock) {
+        wakeLock.release()
+      }
+    }
   }, [])
 
   if (loading && !projectData) {
