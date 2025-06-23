@@ -1,0 +1,13 @@
+{
+  "buildCommand": "npm run build",
+  "devCommand": "npm run dev",
+  "installCommand": "npm install",
+  "framework": "nextjs",
+  "regions": ["iad1"],
+  "env": {
+    "GITHUB_TOKEN": "@github_token",
+    "GITHUB_OWNER": "@github_owner", 
+    "GITHUB_REPO": "@github_repo",
+    "PROJECT_NUMBER": "@project_number"
+  }
+} 

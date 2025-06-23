@@ -1,0 +1,146 @@
+'use client'
+
+import { ProjectItem } from '@/types/github'
+import { ExternalLink, User, Tag, Calendar, AlertCircle, GitPullRequest } from 'lucide-react'
+
+interface ProjectItemCardProps {
+  item: ProjectItem
+}
+
+export function ProjectItemCard({ item }: ProjectItemCardProps) {
+  const getItemIcon = () => {
+    switch (item.type) {
+      case 'ISSUE':
+        return <AlertCircle className="w-4 h-4" />
+      case 'PULL_REQUEST':
+        return <GitPullRequest className="w-4 h-4" />
+      case 'DRAFT_ISSUE':
+        return <AlertCircle className="w-4 h-4 opacity-50" />
+      default:
+        return <AlertCircle className="w-4 h-4" />
+    }
+  }
+
+  const getStateColor = () => {
+    switch (item.state) {
+      case 'OPEN':
+        return 'text-green-500'
+      case 'CLOSED':
+        return 'text-purple-500'
+      case 'MERGED':
+        return 'text-blue-500'
+      default:
+        return 'text-gray-500'
+    }
+  }
+
+  const formatDate = (dateString: string) => {
+    return new Date(dateString).toLocaleDateString('en-US', {
+      month: 'short',
+      day: 'numeric'
+    })
+  }
+
+  return (
+    <div className="bg-background border rounded-lg p-4 hover:shadow-md transition-shadow cursor-pointer">
+      <div className="flex items-start justify-between mb-3">
+        <div className="flex items-center space-x-2">
+          <div className={getStateColor()}>
+            {getItemIcon()}
+          </div>
+          <span className="text-xs text-muted-foreground uppercase tracking-wide">
+            {item.type.replace('_', ' ')}
+          </span>
+        </div>
+        
+        <a
+          href={item.url}
+          target="_blank"
+          rel="noopener noreferrer"
+          className="text-muted-foreground hover:text-primary"
+          onClick={(e) => e.stopPropagation()}
+        >
+          <ExternalLink className="w-4 h-4" />
+        </a>
+      </div>
+
+      <h5 className="font-medium text-sm mb-2 line-clamp-2">
+        {item.title}
+      </h5>
+
+      {item.body && (
+        <p className="text-xs text-muted-foreground mb-3 line-clamp-2">
+          {item.body}
+        </p>
+      )}
+
+      {/* Labels */}
+      {item.labels.length > 0 && (
+        <div className="flex flex-wrap gap-1 mb-3">
+          {item.labels.slice(0, 3).map((label) => (
+            <span
+              key={label.name}
+              className="inline-flex items-center px-2 py-1 text-xs rounded-full"
+              style={{
+                backgroundColor: `#${label.color}20`,
+                color: `#${label.color}`,
+                borderColor: `#${label.color}40`,
+                borderWidth: '1px'
+              }}
+            >
+              <Tag className="w-3 h-3 mr-1" />
+              {label.name}
+            </span>
+          ))}
+          {item.labels.length > 3 && (
+            <span className="text-xs text-muted-foreground">
+              +{item.labels.length - 3} more
+            </span>
+          )}
+        </div>
+      )}
+
+      {/* Assignees */}
+      {item.assignees.length > 0 && (
+        <div className="flex items-center space-x-2 mb-3">
+          <User className="w-3 h-3 text-muted-foreground" />
+          <div className="flex -space-x-1">
+            {item.assignees.slice(0, 3).map((assignee) => (
+              <img
+                key={assignee.login}
+                src={assignee.avatarUrl}
+                alt={assignee.login}
+                className="w-5 h-5 rounded-full border-2 border-background"
+                title={assignee.login}
+              />
+            ))}
+            {item.assignees.length > 3 && (
+              <div className="w-5 h-5 rounded-full bg-muted border-2 border-background flex items-center justify-center">
+                <span className="text-xs text-muted-foreground">
+                  +{item.assignees.length - 3}
+                </span>
+              </div>
+            )}
+          </div>
+        </div>
+      )}
+
+      {/* Footer */}
+      <div className="flex items-center justify-between text-xs text-muted-foreground pt-2 border-t">
+        <div className="flex items-center space-x-1">
+          <Calendar className="w-3 h-3" />
+          <span>{formatDate(item.updatedAt)}</span>
+        </div>
+        
+        <div className="flex items-center space-x-1">
+          <img
+            src={item.author.avatarUrl}
+            alt={item.author.login}
+            className="w-4 h-4 rounded-full"
+          />
+          <span>{item.author.login}</span>
+        </div>
+      </div>
+    </div>
+  )
+} 
