@@ -1,9 +1,222 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { graphql } from '@octokit/graphql'
 
-const PROJECT_QUERY = `
-  query GetProject($owner: String!, $number: Int!) {
+const USER_PROJECT_QUERY = `
+  query GetUserProject($owner: String!, $number: Int!) {
     user(login: $owner) {
+      projectV2(number: $number) {
+        id
+        number
+        title
+        shortDescription
+        readme
+        public
+        closed
+        createdAt
+        updatedAt
+        url
+        owner {
+          ... on User {
+            login
+            avatarUrl
+            url
+          }
+          ... on Organization {
+            login
+            avatarUrl
+            url
+          }
+        }
+        items(first: 100) {
+          nodes {
+            id
+            type
+            createdAt
+            updatedAt
+            content {
+              ... on Issue {
+                id
+                title
+                body
+                url
+                state
+                createdAt
+                updatedAt
+                closedAt
+                author {
+                  login
+                  avatarUrl
+                  url
+                }
+                assignees(first: 10) {
+                  nodes {
+                    login
+                    avatarUrl
+                    url
+                  }
+                }
+                labels(first: 10) {
+                  nodes {
+                    name
+                    color
+                    description
+                  }
+                }
+                milestone {
+                  title
+                  description
+                  dueOn
+                  state
+                }
+                repository {
+                  name
+                  nameWithOwner
+                  url
+                  description
+                }
+              }
+              ... on PullRequest {
+                id
+                title
+                body
+                url
+                state
+                createdAt
+                updatedAt
+                closedAt
+                mergedAt
+                author {
+                  login
+                  avatarUrl
+                  url
+                }
+                assignees(first: 10) {
+                  nodes {
+                    login
+                    avatarUrl
+                    url
+                  }
+                }
+                labels(first: 10) {
+                  nodes {
+                    name
+                    color
+                    description
+                  }
+                }
+                milestone {
+                  title
+                  description
+                  dueOn
+                  state
+                }
+                repository {
+                  name
+                  nameWithOwner
+                  url
+                  description
+                }
+              }
+              ... on DraftIssue {
+                id
+                title
+                body
+                createdAt
+                updatedAt
+                creator {
+                  login
+                  avatarUrl
+                  url
+                }
+                assignees(first: 10) {
+                  nodes {
+                    login
+                    avatarUrl
+                    url
+                  }
+                }
+              }
+            }
+            fieldValues(first: 20) {
+              nodes {
+                ... on ProjectV2ItemFieldTextValue {
+                  text
+                  field {
+                    ... on ProjectV2FieldCommon {
+                      name
+                    }
+                  }
+                }
+                ... on ProjectV2ItemFieldNumberValue {
+                  number
+                  field {
+                    ... on ProjectV2FieldCommon {
+                      name
+                    }
+                  }
+                }
+                ... on ProjectV2ItemFieldSingleSelectValue {
+                  name
+                  field {
+                    ... on ProjectV2FieldCommon {
+                      name
+                    }
+                  }
+                }
+                ... on ProjectV2ItemFieldDateValue {
+                  date
+                  field {
+                    ... on ProjectV2FieldCommon {
+                      name
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+        fields(first: 20) {
+          nodes {
+            ... on ProjectV2Field {
+              id
+              name
+              dataType
+            }
+            ... on ProjectV2SingleSelectField {
+              id
+              name
+              dataType
+              options {
+                id
+                name
+                color
+              }
+            }
+          }
+        }
+        views(first: 10) {
+          nodes {
+            id
+            name
+            layout
+            fields(first: 20) {
+              nodes {
+                ... on ProjectV2Field {
+                  id
+                  name
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  }
+`
+
+const ORG_PROJECT_QUERY = `
+  query GetOrgProject($owner: String!, $number: Int!) {
+    organization(login: $owner) {
       projectV2(number: $number) {
         id
         number
@@ -235,19 +448,35 @@ export async function GET() {
       },
     })
 
-    const data: any = await graphqlWithAuth(PROJECT_QUERY, {
-      owner,
-      number: parseInt(projectNumber),
-    })
+    let data: any = null
+    let project: any = null
 
-    if (!data.user?.projectV2) {
+    // Try organization first
+    try {
+      data = await graphqlWithAuth(ORG_PROJECT_QUERY, {
+        owner,
+        number: parseInt(projectNumber),
+      })
+      project = data.organization?.projectV2
+    } catch (orgError) {
+      // If organization query fails, try user query
+      try {
+        data = await graphqlWithAuth(USER_PROJECT_QUERY, {
+          owner,
+          number: parseInt(projectNumber),
+        })
+        project = data.user?.projectV2
+      } catch (userError) {
+        throw userError
+      }
+    }
+
+    if (!project) {
       return NextResponse.json(
         { error: 'Project not found. Check your owner, project number, and token permissions.' },
         { status: 404 }
       )
     }
-
-    const project = data.user.projectV2
     
     // Transform the data to match our interface
     const transformedProject = {
