@@ -21,8 +21,8 @@ export function ProjectBoard({ project }: ProjectBoardProps) {
       </div>
       
       <div className="p-2 sm:p-4 lg:p-6">
-        <div className="grid gap-2 sm:gap-4 lg:gap-6 auto-cols-fr" style={{ gridTemplateColumns: `repeat(${Math.min(Object.keys(groupedItems).length, 4)}, 1fr)` }}>
-          {Object.entries(groupedItems).map(([status, items]) => (
+        <div className="grid gap-2 sm:gap-4 lg:gap-6 auto-cols-fr" style={{ gridTemplateColumns: `repeat(${Math.min(Object.keys(groupedItems).length, 5)}, 1fr)` }}>
+          {getSortedStatusEntries(groupedItems).map(([status, items]) => (
             <div key={status} className="space-y-2 lg:space-y-3">
               <div className="flex items-center justify-between sticky top-0 bg-card z-10 pb-2">
                 <h4 className="font-medium text-xs lg:text-sm xl:text-base uppercase tracking-wide text-muted-foreground">
@@ -58,11 +58,13 @@ export function ProjectBoard({ project }: ProjectBoardProps) {
 }
 
 function groupItemsByStatus(items: ProjectItem[]): Record<string, ProjectItem[]> {
+  // Initialize with your actual project status columns
   const groups: Record<string, ProjectItem[]> = {
-    'Open': [],
+    'TODO': [],
+    'On Deck': [],
+    'BONUS': [],
     'In Progress': [],
-    'Done': [],
-    'Closed': []
+    'Done': []
   }
 
   items.forEach(item => {
@@ -79,38 +81,44 @@ function groupItemsByStatus(items: ProjectItem[]): Record<string, ProjectItem[]>
       }
       groups[status].push(item)
     } else {
-      // Fallback to item state
-      switch (item.state) {
-        case 'OPEN':
-          // Check if it's assigned or has labels that indicate progress
-          if (item.assignees.length > 0 || item.labels.some(label => 
-            label.name.toLowerCase().includes('progress') ||
-            label.name.toLowerCase().includes('working') ||
-            label.name.toLowerCase().includes('develop')
-          )) {
-            groups['In Progress'].push(item)
-          } else {
-            groups['Open'].push(item)
-          }
-          break
-        case 'CLOSED':
-          groups['Closed'].push(item)
-          break
-        case 'MERGED':
-          groups['Done'].push(item)
-          break
-        default:
-          groups['Open'].push(item)
-      }
+      // Fallback: put items without status in TODO
+      groups['TODO'].push(item)
     }
   })
 
-  // Remove empty groups
-  Object.keys(groups).forEach(key => {
-    if (groups[key].length === 0) {
-      delete groups[key]
-    }
-  })
-
+  // Keep empty groups to show all columns
   return groups
+}
+
+function getSortedStatusEntries(groupedItems: Record<string, ProjectItem[]>): [string, ProjectItem[]][] {
+  // Define the desired order
+  const statusOrder = ['TODO', 'On Deck', 'BONUS', 'In Progress', 'Done']
+  
+  // Create a mapping of normalized status names to actual status names
+  const statusMapping: Record<string, string> = {}
+  Object.keys(groupedItems).forEach(status => {
+    const normalizedStatus = status.toUpperCase().replace(/\s+/g, ' ').trim()
+    statusMapping[normalizedStatus] = status
+  })
+  
+  // Sort entries based on the desired order
+  const sortedEntries: [string, ProjectItem[]][] = []
+  
+  // First, add items in the specified order
+  statusOrder.forEach(orderedStatus => {
+    if (statusMapping[orderedStatus.toUpperCase().replace(/\s+/g, ' ').trim()]) {
+      const actualStatus = statusMapping[orderedStatus.toUpperCase().replace(/\s+/g, ' ').trim()]
+      sortedEntries.push([actualStatus, groupedItems[actualStatus]])
+    }
+  })
+  
+  // Then add any remaining statuses not in the specified order
+  Object.entries(groupedItems).forEach(([status, items]) => {
+    const normalizedStatus = status.toUpperCase().replace(/\s+/g, ' ').trim()
+    if (!statusOrder.some(orderedStatus => orderedStatus.toUpperCase().replace(/\s+/g, ' ').trim() === normalizedStatus)) {
+      sortedEntries.push([status, items])
+    }
+  })
+  
+  return sortedEntries
 } 
