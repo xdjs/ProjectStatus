@@ -1,7 +1,7 @@
 'use client'
 
 import { ProjectItem } from '@/types/github'
-import { ExternalLink, User, Tag, Calendar, AlertCircle, GitPullRequest } from 'lucide-react'
+import { ExternalLink, User, Tag, AlertCircle, GitPullRequest } from 'lucide-react'
 
 interface ProjectItemCardProps {
   item: ProjectItem
@@ -32,13 +32,6 @@ export function ProjectItemCard({ item }: ProjectItemCardProps) {
       default:
         return 'text-gray-500'
     }
-  }
-
-  const formatDate = (dateString: string) => {
-    return new Date(dateString).toLocaleDateString('en-US', {
-      month: 'short',
-      day: 'numeric'
-    })
   }
 
   return (
@@ -97,7 +90,7 @@ export function ProjectItemCard({ item }: ProjectItemCardProps) {
 
       {/* Assignees */}
       {item.assignees.length > 0 && (
-        <div className="flex items-center space-x-1 lg:space-x-2 mb-2 lg:mb-3">
+        <div className="flex items-center space-x-1 lg:space-x-2">
           <User className="w-2 h-2 lg:w-3 lg:h-3 text-muted-foreground" />
           <div className="flex -space-x-1">
             {item.assignees.slice(0, 3).map((assignee) => (
@@ -119,24 +112,6 @@ export function ProjectItemCard({ item }: ProjectItemCardProps) {
           </div>
         </div>
       )}
-
-      {/* Footer */}
-      <div className="flex items-center justify-between text-xs text-muted-foreground pt-1 lg:pt-2 border-t">
-        <div className="flex items-center space-x-1">
-          <Calendar className="w-2 h-2 lg:w-3 lg:h-3" />
-          <span className="hidden lg:inline">{formatDate(item.updatedAt)}</span>
-        </div>
-        
-        <div className="flex items-center space-x-1">
-          <img
-            src={item.author.avatarUrl}
-            alt={item.author.login}
-            className="w-3 h-3 lg:w-4 lg:h-4 rounded-full"
-          />
-          <span className="hidden lg:inline">{item.author.login}</span>
-          <span className="lg:hidden">{item.author.login.substring(0, 8)}</span>
-        </div>
-      </div>
     </div>
   )
 } 
