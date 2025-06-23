@@ -64,15 +64,9 @@ export function ProjectItemCard({ item }: ProjectItemCardProps) {
         </a>
       </div>
 
-      <h5 className="font-medium text-xs lg:text-sm mb-1 lg:mb-2 line-clamp-2">
+      <h5 className="font-medium text-xs lg:text-sm mb-2 lg:mb-3 line-clamp-2">
         {item.title}
       </h5>
-
-      {item.body && (
-        <p className="text-xs text-muted-foreground mb-2 lg:mb-3 line-clamp-1 lg:line-clamp-2">
-          {item.body}
-        </p>
-      )}
 
       {/* Labels */}
       {item.labels.length > 0 && (
