@@ -1,10 +1,8 @@
 'use client'
 
 import { ProjectData } from '@/types/github'
-import { ProjectHeader } from './ProjectHeader'
 import { ProjectBoard } from './ProjectBoard'
-import { ProjectStats } from './ProjectStats'
-import { Settings, RefreshCw, AlertCircle } from 'lucide-react'
+import { RefreshCw, AlertCircle } from 'lucide-react'
 
 interface ProjectDashboardProps {
   projectData: ProjectData | null
@@ -28,11 +26,11 @@ export function ProjectDashboard({
   }
 
   return (
-    <div className="space-y-6">
-      {/* Header with controls */}
+    <div className="space-y-4">
+      {/* Simple header with refresh */}
       <div className="flex items-center justify-between">
         <div className="flex items-center space-x-4">
-          <h1 className="text-2xl font-bold">Project Dashboard</h1>
+          <h1 className="text-xl font-semibold">{projectData.title}</h1>
           {loading && (
             <div className="flex items-center text-muted-foreground">
               <RefreshCw className="w-4 h-4 animate-spin mr-2" />
@@ -56,13 +54,7 @@ export function ProjectDashboard({
         </button>
       </div>
 
-      {/* Project Header */}
-      <ProjectHeader project={projectData} />
-
-      {/* Project Statistics */}
-      <ProjectStats project={projectData} />
-
-      {/* Project Board */}
+      {/* Project Board Only */}
       <ProjectBoard project={projectData} />
     </div>
   )
