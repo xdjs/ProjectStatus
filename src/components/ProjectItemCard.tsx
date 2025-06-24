@@ -7,40 +7,29 @@ interface ProjectItemCardProps {
   item: ProjectItem
 }
 
-export function ProjectItemCard({ item }: ProjectItemCardProps) {
-  const getItemIcon = () => {
-    switch (item.type) {
-      case 'ISSUE':
-        return <AlertCircle className="w-4 h-4" />
-      case 'PULL_REQUEST':
-        return <GitPullRequest className="w-4 h-4" />
-      case 'DRAFT_ISSUE':
-        return <AlertCircle className="w-4 h-4 opacity-50" />
-      default:
-        return <AlertCircle className="w-4 h-4" />
-    }
-  }
+const ITEM_CONFIG = {
+  ISSUE: { icon: AlertCircle, color: 'text-green-500' },
+  PULL_REQUEST: { icon: GitPullRequest, color: 'text-blue-500' },
+  DRAFT_ISSUE: { icon: AlertCircle, color: 'text-gray-500 opacity-50' }
+} as const
 
-  const getStateColor = () => {
-    switch (item.state) {
-      case 'OPEN':
-        return 'text-green-500'
-      case 'CLOSED':
-        return 'text-purple-500'
-      case 'MERGED':
-        return 'text-blue-500'
-      default:
-        return 'text-gray-500'
-    }
-  }
+const STATE_COLORS = {
+  OPEN: 'text-green-500',
+  CLOSED: 'text-purple-500',
+  MERGED: 'text-blue-500'
+} as const
+
+export function ProjectItemCard({ item }: ProjectItemCardProps) {
+  const config = ITEM_CONFIG[item.type] || ITEM_CONFIG.ISSUE
+  const Icon = config.icon
+  const stateColor = STATE_COLORS[item.state] || 'text-gray-500'
 
   return (
     <div className="bg-background border rounded-lg p-2 lg:p-3 xl:p-4 hover:shadow-md transition-shadow cursor-pointer text-xs lg:text-sm">
+      {/* Header */}
       <div className="flex items-start justify-between mb-2 lg:mb-3">
         <div className="flex items-center space-x-1 lg:space-x-2">
-          <div className={getStateColor()}>
-            {getItemIcon()}
-          </div>
+          <Icon className={`w-4 h-4 ${stateColor}`} />
           <span className="text-xs text-muted-foreground uppercase tracking-wide hidden lg:inline">
             {item.type.replace('_', ' ')}
           </span>
@@ -57,6 +46,7 @@ export function ProjectItemCard({ item }: ProjectItemCardProps) {
         </a>
       </div>
 
+      {/* Title */}
       <h5 className="font-medium text-xs lg:text-sm mb-2 lg:mb-3 line-clamp-2">
         {item.title}
       </h5>
@@ -65,20 +55,7 @@ export function ProjectItemCard({ item }: ProjectItemCardProps) {
       {item.labels.length > 0 && (
         <div className="flex flex-wrap gap-1 mb-2 lg:mb-3">
           {item.labels.slice(0, 2).map((label) => (
-            <span
-              key={label.name}
-              className="inline-flex items-center px-1 lg:px-2 py-0.5 lg:py-1 text-xs rounded-full"
-              style={{
-                backgroundColor: `#${label.color}20`,
-                color: `#${label.color}`,
-                borderColor: `#${label.color}40`,
-                borderWidth: '1px'
-              }}
-            >
-              <Tag className="w-2 h-2 lg:w-3 lg:h-3 mr-0.5 lg:mr-1" />
-              <span className="hidden lg:inline">{label.name}</span>
-              <span className="lg:hidden">{label.name.substring(0, 3)}</span>
-            </span>
+            <LabelBadge key={label.name} label={label} />
           ))}
           {item.labels.length > 2 && (
             <span className="text-xs text-muted-foreground">
@@ -113,5 +90,23 @@ export function ProjectItemCard({ item }: ProjectItemCardProps) {
         </div>
       )}
     </div>
+  )
+}
+
+function LabelBadge({ label }: { label: { name: string; color: string } }) {
+  return (
+    <span
+      className="inline-flex items-center px-1 lg:px-2 py-0.5 lg:py-1 text-xs rounded-full"
+      style={{
+        backgroundColor: `#${label.color}20`,
+        color: `#${label.color}`,
+        borderColor: `#${label.color}40`,
+        borderWidth: '1px'
+      }}
+    >
+      <Tag className="w-2 h-2 lg:w-3 lg:h-3 mr-0.5 lg:mr-1" />
+      <span className="hidden lg:inline">{label.name}</span>
+      <span className="lg:hidden">{label.name.substring(0, 3)}</span>
+    </span>
   )
 } 
