@@ -72,8 +72,8 @@ export default function Home() {
       console.log('Falling back to polling...')
     }
     
-    // Set up polling as fallback (every 30 seconds, less frequent since we have real-time updates)
-    const interval = setInterval(fetchProjectData, 30000)
+    // Set up polling as fallback (every 10 seconds for responsiveness to column changes)
+    const interval = setInterval(fetchProjectData, 10000)
     
     // Keep screen awake for TV display
     let wakeLock: WakeLockSentinel | null = null

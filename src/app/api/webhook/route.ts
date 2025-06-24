@@ -55,6 +55,20 @@ export async function POST(request: NextRequest) {
       }
     }
     
+    // Handle issues and pull requests (which are project items)
+    if (event === 'issues' || event === 'pull_request') {
+      console.log(`${event} ${payload.action}: ${payload[event.slice(0, -1)]?.title || 'Unknown'}`)
+      
+      // Broadcast update for any issue/PR change that could affect the project
+      broadcastUpdate({
+        type: 'project_item_updated',
+        action: payload.action,
+        itemId: payload[event.slice(0, -1)]?.id,
+        event: event,
+        timestamp: new Date().toISOString()
+      })
+    }
+    
     return NextResponse.json({ received: true })
   } catch (error: any) {
     console.error('Webhook error:', error)
