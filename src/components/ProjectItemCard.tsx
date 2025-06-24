@@ -2,6 +2,7 @@
 
 import { ProjectItem } from '@/types/github'
 import { ExternalLink, User, Tag, AlertCircle, GitPullRequest } from 'lucide-react'
+import Image from 'next/image'
 
 interface ProjectItemCardProps {
   item: ProjectItem
@@ -71,10 +72,12 @@ export function ProjectItemCard({ item }: ProjectItemCardProps) {
           <User className="w-2 h-2 lg:w-3 lg:h-3 text-muted-foreground" />
           <div className="flex -space-x-1">
             {item.assignees.slice(0, 3).map((assignee) => (
-              <img
+              <Image
                 key={assignee.login}
                 src={assignee.avatarUrl}
                 alt={assignee.login}
+                width={20}
+                height={20}
                 className="w-4 h-4 lg:w-5 lg:h-5 rounded-full border-2 border-background"
                 title={assignee.login}
               />

@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { headers } from 'next/headers'
 import crypto from 'crypto'
-import { broadcastUpdate } from '../events/route'
+import { broadcastUpdate } from '@/lib/events'
 
 // Webhook secret for validating GitHub webhook requests
 const WEBHOOK_SECRET = process.env.GITHUB_WEBHOOK_SECRET || ''

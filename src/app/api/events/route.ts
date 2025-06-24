@@ -1,12 +1,13 @@
 import { NextRequest } from 'next/server'
+import { addConnection, removeConnection } from '@/lib/events'
 
-// Store active connections
-const connections = new Set<ReadableStreamDefaultController>()
+// Prevent static generation for this route
+export const dynamic = 'force-dynamic'
 
 export async function GET(request: NextRequest) {
   const stream = new ReadableStream({
     start(controller) {
-      connections.add(controller)
+      addConnection(controller)
       
       // Send initial connection message
       controller.enqueue(`data: ${JSON.stringify({ type: 'connected', timestamp: new Date().toISOString() })}\\n\\n`)
@@ -17,14 +18,14 @@ export async function GET(request: NextRequest) {
           controller.enqueue(`data: ${JSON.stringify({ type: 'heartbeat', timestamp: new Date().toISOString() })}\\n\\n`)
         } catch (error) {
           clearInterval(heartbeat)
-          connections.delete(controller)
+          removeConnection(controller)
         }
       }, 30000) // 30 second heartbeat
       
       // Clean up on close
       request.signal.addEventListener('abort', () => {
         clearInterval(heartbeat)
-        connections.delete(controller)
+        removeConnection(controller)
       })
     }
   })
@@ -37,20 +38,6 @@ export async function GET(request: NextRequest) {
       'Access-Control-Allow-Origin': '*',
       'Access-Control-Allow-Methods': 'GET',
       'Access-Control-Allow-Headers': 'Cache-Control'
-    }
-  })
-}
-
-// Function to broadcast updates to all connected clients
-export function broadcastUpdate(data: any) {
-  const message = `data: ${JSON.stringify(data)}\\n\\n`
-  
-  connections.forEach(controller => {
-    try {
-      controller.enqueue(message)
-    } catch (error) {
-      // Remove dead connections
-      connections.delete(controller)
     }
   })
 } 
