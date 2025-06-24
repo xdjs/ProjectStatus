@@ -10,12 +10,17 @@ export function removeConnection(controller: ReadableStreamDefaultController) {
 }
 
 export function broadcastUpdate(data: any) {
-  const message = `data: ${JSON.stringify(data)}\\n\\n`
+  const message = `data: ${JSON.stringify(data)}\n\n`
+  const encoder = new TextEncoder()
+  const encodedMessage = encoder.encode(message)
+  
+  console.log(`Broadcasting to ${connections.size} connections:`, data)
   
   connections.forEach(controller => {
     try {
-      controller.enqueue(message)
+      controller.enqueue(encodedMessage)
     } catch (error) {
+      console.log('Removing dead connection:', error)
       // Remove dead connections
       connections.delete(controller)
     }
