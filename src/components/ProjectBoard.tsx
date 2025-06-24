@@ -8,7 +8,7 @@ interface ProjectBoardProps {
 }
 
 // Predefined column order
-const COLUMN_ORDER = ['TODO', 'On Deck', 'BONUS', 'In Progress', 'Done']
+const COLUMN_ORDER = ['TODO', 'Bonus', 'On Deck', 'In Progress', 'Done']
 
 export function ProjectBoard({ project }: ProjectBoardProps) {
   const groupedItems = groupItemsByStatus(project.items)
@@ -75,7 +75,10 @@ function groupItemsByStatus(items: ProjectItem[]): Record<string, ProjectItem[]>
     const statusField = item.projectFields.find(field => 
       field.name.toLowerCase().includes('status')
     )
-    const status = statusField?.value || 'TODO'
+    let status = statusField?.value || 'TODO'
+    
+    // Normalize status to match our column order
+    status = normalizeStatus(status)
     
     // Create column if it doesn't exist
     if (!groups[status]) {
@@ -85,6 +88,30 @@ function groupItemsByStatus(items: ProjectItem[]): Record<string, ProjectItem[]>
   })
 
   return groups
+}
+
+function normalizeStatus(status: string): string {
+  const statusLower = status.toLowerCase()
+  
+  // Map various forms of status to our standardized column names
+  if (statusLower === 'todo' || statusLower === 'to do' || statusLower === 'to-do') {
+    return 'TODO'
+  }
+  if (statusLower === 'bonus') {
+    return 'Bonus'
+  }
+  if (statusLower === 'on deck' || statusLower === 'ondeck' || statusLower === 'on-deck') {
+    return 'On Deck'
+  }
+  if (statusLower === 'in progress' || statusLower === 'inprogress' || statusLower === 'in-progress') {
+    return 'In Progress'
+  }
+  if (statusLower === 'done' || statusLower === 'completed' || statusLower === 'complete') {
+    return 'Done'
+  }
+  
+  // Return original status if no mapping found
+  return status
 }
 
 function getSortedColumns(groupedItems: Record<string, ProjectItem[]>): [string, ProjectItem[]][] {

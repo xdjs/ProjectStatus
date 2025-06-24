@@ -6,6 +6,9 @@ const nextConfig = {
     GITHUB_REPO: process.env.GITHUB_REPO || '',
     PROJECT_NUMBER: process.env.PROJECT_NUMBER || '',
   },
+  images: {
+    domains: ['avatars.githubusercontent.com', 'github.com'],
+  },
 }
 
 module.exports = nextConfig 
