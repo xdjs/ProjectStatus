@@ -37,40 +37,26 @@ export async function POST(request: NextRequest) {
       pr_number: payload.pull_request?.number
     })
     
-    // Handle Projects v2 item updates
+    // Always broadcast update - any webhook activity suggests something changed
+    console.log('Broadcasting project update due to webhook activity')
+    broadcastUpdate({
+      type: 'project_item_updated',
+      event: event,
+      action: payload.action,
+      timestamp: new Date().toISOString()
+    })
+    
+    // Legacy specific handlers (keeping for detailed logging)
     if (event === 'projects_v2_item') {
       const { action, changes, projects_v2_item } = payload
       
-      // Broadcast status changes to connected clients
       if (action === 'edited' && changes?.field_value?.field_name === 'Status') {
         console.log(`Item ${projects_v2_item.id} moved from "${changes.field_value.from?.name}" to "${changes.field_value.to?.name}"`)
-        
-        broadcastUpdate({
-          type: 'project_item_updated',
-          action,
-          itemId: projects_v2_item.id,
-          changes: {
-            field: changes.field_value.field_name,
-            from: changes.field_value.from?.name,
-            to: changes.field_value.to?.name
-          },
-          timestamp: new Date().toISOString()
-        })
       }
     }
     
-    // Handle issues and pull requests (which are project items)
     if (event === 'issues' || event === 'pull_request') {
       console.log(`${event} ${payload.action}: ${payload[event.slice(0, -1)]?.title || 'Unknown'}`)
-      
-      // Broadcast update for any issue/PR change that could affect the project
-      broadcastUpdate({
-        type: 'project_item_updated',
-        action: payload.action,
-        itemId: payload[event.slice(0, -1)]?.id,
-        event: event,
-        timestamp: new Date().toISOString()
-      })
     }
     
     return NextResponse.json({ received: true })
