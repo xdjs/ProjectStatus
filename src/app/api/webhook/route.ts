@@ -30,7 +30,11 @@ export async function POST(request: NextRequest) {
     const payload = JSON.parse(body)
     console.log(`Received ${event} webhook:`, {
       action: payload.action,
-      sender: payload.sender?.login
+      sender: payload.sender?.login,
+      issue_title: payload.issue?.title,
+      issue_number: payload.issue?.number,
+      pr_title: payload.pull_request?.title,
+      pr_number: payload.pull_request?.number
     })
     
     // Handle Projects v2 item updates
