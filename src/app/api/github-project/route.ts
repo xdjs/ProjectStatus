@@ -115,6 +115,14 @@ function transformProjectItem(item: any): any {
     }))
   }
 
+  // Debug: Log field values for debugging
+  if (content?.title) {
+    console.log(`Issue "${content.title}" field values:`, item.fieldValues.nodes.map((fv: any) => ({
+      field: fv.field?.name,
+      value: fv.text || fv.number?.toString() || fv.name || fv.date || null
+    })))
+  }
+
   if (!content) {
     return {
       ...baseItem,
@@ -167,6 +175,8 @@ async function fetchProject(graphqlWithAuth: any, owner: string, projectNumber: 
 
 export async function GET() {
   try {
+    console.log('GitHub API request started at:', new Date().toISOString())
+    
     const { GITHUB_OWNER: owner, GITHUB_REPO: repo, PROJECT_NUMBER: projectNumber, GITHUB_TOKEN: token } = process.env
 
     if (!owner || !projectNumber || !token) {
@@ -179,11 +189,16 @@ export async function GET() {
     const graphqlWithAuth = graphql.defaults({
       headers: {
         authorization: `token ${token}`,
-        'X-GitHub-Api-Version': '2022-11-28'
+        'X-GitHub-Api-Version': '2022-11-28',
+        'X-Request-ID': `${Date.now()}-${Math.random()}` // Cache busting
       },
     })
 
+    console.log('Fetching project data from GitHub...')
+    const startTime = Date.now()
     const project = await fetchProject(graphqlWithAuth, owner, parseInt(projectNumber), repo)
+    const fetchTime = Date.now() - startTime
+    console.log(`GitHub API response received in ${fetchTime}ms`)
 
     const transformedProject = {
       id: project.id,
@@ -207,6 +222,8 @@ export async function GET() {
       },
       items: project.items.nodes.map(transformProjectItem)
     }
+
+    console.log(`Returning ${transformedProject.items.length} project items`)
 
     const response = NextResponse.json(transformedProject)
     

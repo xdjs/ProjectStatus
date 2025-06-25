@@ -9,6 +9,16 @@ export default function Home() {
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
 
+  // Debug: Track when projectData state changes
+  useEffect(() => {
+    console.log('ProjectData state changed:', {
+      hasData: !!projectData,
+      itemCount: projectData?.items?.length || 0,
+      lastFetched: projectData?.lastFetched,
+      title: projectData?.title
+    })
+  }, [projectData])
+
   const fetchProjectData = async () => {
     setLoading(true)
     setError(null)
@@ -31,8 +41,11 @@ export default function Home() {
       }
 
       const data = await response.json()
-      console.log('Project data updated at:', data.lastFetched || new Date().toISOString())
-      console.log('Total items:', data.items?.length || 0)
+      console.log('Project data received:', {
+        lastFetched: data.lastFetched || new Date().toISOString(),
+        totalItems: data.items?.length || 0,
+        title: data.title
+      })
       
       // Log status distribution for debugging
       const statusCounts = data.items?.reduce((acc: any, item: any) => {
@@ -42,7 +55,11 @@ export default function Home() {
       }, {}) || {}
       console.log('Status distribution:', statusCounts)
       
+      // Log before setting state
+      console.log('Setting project data state...')
       setProjectData(data)
+      console.log('Project data state updated')
+      
     } catch (err) {
       console.error('Error fetching project data:', err)
       setError(err instanceof Error ? err.message : 'Failed to fetch project data')
@@ -55,7 +72,12 @@ export default function Home() {
     fetchProjectData()
     
     // Set up Server-Sent Events for real-time updates
+    console.log('Setting up Server-Sent Events connection...')
     const eventSource = new EventSource('/api/events')
+    
+    eventSource.onopen = (event) => {
+      console.log('SSE connection opened:', event)
+    }
     
     eventSource.onmessage = (event) => {
       const data = JSON.parse(event.data)
@@ -64,12 +86,16 @@ export default function Home() {
       if (data.type === 'project_item_updated') {
         console.log('Project item updated, refreshing data...')
         fetchProjectData()
+      } else if (data.type === 'connected') {
+        console.log('SSE connection established successfully')
+      } else if (data.type === 'heartbeat') {
+        console.log('SSE heartbeat received')
       }
     }
     
     eventSource.onerror = (error) => {
       console.error('EventSource error:', error)
-      console.log('Falling back to polling...')
+      console.log('SSE connection failed, falling back to polling...')
     }
     
     // Set up polling as fallback (every 10 seconds for responsiveness to column changes)

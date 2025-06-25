@@ -11,8 +11,19 @@ interface ProjectBoardProps {
 const COLUMN_ORDER = ['TODO', 'Bonus', 'On Deck', 'In Progress', 'Done']
 
 export function ProjectBoard({ project }: ProjectBoardProps) {
+  console.log('ProjectBoard render - project items:', project.items.length)
+  
   const groupedItems = groupItemsByStatus(project.items)
+  console.log('ProjectBoard - grouped items:', Object.keys(groupedItems).map(key => ({
+    column: key,
+    count: groupedItems[key].length
+  })))
+  
   const sortedColumns = getSortedColumns(groupedItems)
+  console.log('ProjectBoard - sorted columns:', sortedColumns.map(([status, items]) => ({
+    status,
+    count: items.length
+  })))
 
   return (
     <div className="bg-card rounded-lg border shadow-sm">
@@ -95,22 +106,50 @@ function normalizeStatus(status: string): string {
   
   // Map various forms of status to our standardized column names
   if (statusLower === 'todo' || statusLower === 'to do' || statusLower === 'to-do') {
-    return 'TODO'
+    console.log(`Normalizing "${status}" -> "ToDo"`)
+    return 'ToDo'
   }
   if (statusLower === 'bonus') {
+    console.log(`Normalizing "${status}" -> "Bonus"`)
     return 'Bonus'
   }
   if (statusLower === 'on deck' || statusLower === 'ondeck' || statusLower === 'on-deck') {
+    console.log(`Normalizing "${status}" -> "On Deck"`)
     return 'On Deck'
   }
   if (statusLower === 'in progress' || statusLower === 'inprogress' || statusLower === 'in-progress') {
+    console.log(`Normalizing "${status}" -> "In Progress"`)
     return 'In Progress'
   }
   if (statusLower === 'done' || statusLower === 'completed' || statusLower === 'complete') {
+    console.log(`Normalizing "${status}" -> "Done"`)
     return 'Done'
   }
   
+  // Handle exact matches from GitHub (GitHub returns these exact values)
+  if (status === 'Todo') {
+    console.log(`Exact match "${status}" -> "ToDo"`)
+    return 'ToDo'
+  }
+  if (status === 'In Progress') {
+    console.log(`Exact match "${status}" -> "In Progress"`)
+    return 'In Progress'
+  }
+  if (status === 'On Deck') {
+    console.log(`Exact match "${status}" -> "On Deck"`)
+    return 'On Deck'
+  }
+  if (status === 'Done') {
+    console.log(`Exact match "${status}" -> "Done"`)
+    return 'Done'
+  }
+  if (status === 'Bonus') {
+    console.log(`Exact match "${status}" -> "Bonus"`)
+    return 'Bonus'
+  }
+  
   // Return original status if no mapping found
+  console.log(`No normalization for "${status}" - keeping as-is`)
   return status
 }
 
