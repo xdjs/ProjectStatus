@@ -7,8 +7,8 @@ interface ProjectBoardProps {
   project: ProjectData
 }
 
-// Predefined column order
-const COLUMN_ORDER = ['TODO', 'Bonus', 'On Deck', 'In Progress', 'Done']
+// Predefined column order - using GitHub's exact case
+const COLUMN_ORDER = ['Todo', 'Bonus', 'On Deck', 'In Progress', 'Done']
 
 export function ProjectBoard({ project }: ProjectBoardProps) {
   console.log('ProjectBoard render - project items:', project.items.length)
@@ -86,7 +86,7 @@ function groupItemsByStatus(items: ProjectItem[]): Record<string, ProjectItem[]>
     const statusField = item.projectFields.find(field => 
       field.name.toLowerCase().includes('status')
     )
-    let status = statusField?.value || 'TODO'
+    let status = statusField?.value || 'Todo'
     
     // Normalize status to match our column order
     status = normalizeStatus(status)
@@ -102,54 +102,8 @@ function groupItemsByStatus(items: ProjectItem[]): Record<string, ProjectItem[]>
 }
 
 function normalizeStatus(status: string): string {
-  const statusLower = status.toLowerCase()
-  
-  // Map various forms of status to our standardized column names
-  if (statusLower === 'todo' || statusLower === 'to do' || statusLower === 'to-do') {
-    console.log(`Normalizing "${status}" -> "ToDo"`)
-    return 'ToDo'
-  }
-  if (statusLower === 'bonus') {
-    console.log(`Normalizing "${status}" -> "Bonus"`)
-    return 'Bonus'
-  }
-  if (statusLower === 'on deck' || statusLower === 'ondeck' || statusLower === 'on-deck') {
-    console.log(`Normalizing "${status}" -> "On Deck"`)
-    return 'On Deck'
-  }
-  if (statusLower === 'in progress' || statusLower === 'inprogress' || statusLower === 'in-progress') {
-    console.log(`Normalizing "${status}" -> "In Progress"`)
-    return 'In Progress'
-  }
-  if (statusLower === 'done' || statusLower === 'completed' || statusLower === 'complete') {
-    console.log(`Normalizing "${status}" -> "Done"`)
-    return 'Done'
-  }
-  
-  // Handle exact matches from GitHub (GitHub returns these exact values)
-  if (status === 'Todo') {
-    console.log(`Exact match "${status}" -> "ToDo"`)
-    return 'ToDo'
-  }
-  if (status === 'In Progress') {
-    console.log(`Exact match "${status}" -> "In Progress"`)
-    return 'In Progress'
-  }
-  if (status === 'On Deck') {
-    console.log(`Exact match "${status}" -> "On Deck"`)
-    return 'On Deck'
-  }
-  if (status === 'Done') {
-    console.log(`Exact match "${status}" -> "Done"`)
-    return 'Done'
-  }
-  if (status === 'Bonus') {
-    console.log(`Exact match "${status}" -> "Bonus"`)
-    return 'Bonus'
-  }
-  
-  // Return original status if no mapping found
-  console.log(`No normalization for "${status}" - keeping as-is`)
+  console.log(`Status normalization: "${status}" -> "${status}" (no change needed)`)
+  // Since we're now using GitHub's exact case in COLUMN_ORDER, no normalization needed
   return status
 }
 
