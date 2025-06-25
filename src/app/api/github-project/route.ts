@@ -155,6 +155,10 @@ function transformProjectItem(item: any): any {
 }
 
 async function fetchProject(graphqlWithAuth: any, owner: string, projectNumber: number, repo?: string) {
+  // Add cache-busting timestamp to queries
+  const timestamp = Date.now()
+  const cacheId = Math.random().toString(36).substring(7)
+  
   // Try organization first, then user
   const queries = [
     { query: ORG_PROJECT_QUERY, accessor: (data: any) => data.organization?.projectV2 },
@@ -163,7 +167,13 @@ async function fetchProject(graphqlWithAuth: any, owner: string, projectNumber: 
   
   for (const { query, accessor } of queries) {
     try {
-      const data = await graphqlWithAuth(query, { owner, number: projectNumber })
+      console.log(`Executing GraphQL query with cache-bust: ${timestamp}-${cacheId}`)
+      const data = await graphqlWithAuth(query, { 
+        owner, 
+        number: projectNumber,
+        _cacheBust: timestamp,
+        _requestId: cacheId
+      })
       const project = accessor(data)
       if (project) return project
     } catch (error) {
@@ -173,9 +183,14 @@ async function fetchProject(graphqlWithAuth: any, owner: string, projectNumber: 
   throw new Error('Project not found in organization or user account')
 }
 
-export async function GET() {
+export async function GET(request: NextRequest) {
   try {
     console.log('GitHub API request started at:', new Date().toISOString())
+    
+    // Check for force refresh parameter
+    const url = new URL(request.url)
+    const forceRefresh = url.searchParams.get('force') || url.searchParams.get('t')
+    console.log('Force refresh parameter:', forceRefresh)
     
     const { GITHUB_OWNER: owner, GITHUB_REPO: repo, PROJECT_NUMBER: projectNumber, GITHUB_TOKEN: token } = process.env
 
@@ -190,7 +205,11 @@ export async function GET() {
       headers: {
         authorization: `token ${token}`,
         'X-GitHub-Api-Version': '2022-11-28',
-        'X-Request-ID': `${Date.now()}-${Math.random()}` // Cache busting
+        'X-Request-ID': `${Date.now()}-${Math.random()}`, // Cache busting
+        'Cache-Control': 'no-cache, no-store, must-revalidate',
+        'Pragma': 'no-cache',
+        'If-None-Match': '*', // Force fresh response
+        'X-Fresh-Request': Date.now().toString()
       },
     })
 
@@ -227,11 +246,14 @@ export async function GET() {
 
     const response = NextResponse.json(transformedProject)
     
-    // Prevent caching
-    response.headers.set('Cache-Control', 'no-store, no-cache, must-revalidate, proxy-revalidate')
+    // Prevent caching with maximum aggression
+    response.headers.set('Cache-Control', 'no-store, no-cache, must-revalidate, proxy-revalidate, private, max-age=0')
     response.headers.set('Pragma', 'no-cache')
     response.headers.set('Expires', '0')
     response.headers.set('Surrogate-Control', 'no-store')
+    response.headers.set('Vary', '*')
+    response.headers.set('Last-Modified', new Date().toUTCString())
+    response.headers.set('ETag', `"${Date.now()}-${Math.random()}"`)
     
     return response
   } catch (error: any) {
@@ -245,4 +267,8 @@ export async function GET() {
     const message = statusMap[error.status] || `Failed to fetch project data: ${error.message}`
     return NextResponse.json({ error: message }, { status: error.status || 500 })
   }
-} 
+}
+
+// Force dynamic rendering - no caching
+export const dynamic = 'force-dynamic'
+export const revalidate = 0 
