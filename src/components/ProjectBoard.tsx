@@ -8,7 +8,7 @@ interface ProjectBoardProps {
 }
 
 // Predefined column order - using GitHub's exact case
-const COLUMN_ORDER = ['Artist Web Map Todo', 'MN Research Todo', 'Music Nerd NG Todo', 'Bonus', 'On Deck', 'In Progress', 'Done']
+const COLUMN_ORDER = ['Artist Web Map TODO', 'MN Research TODO', 'Music Nerd NG TODO', 'Bonus', 'On Deck', 'In Progress', 'Done']
 
 export function ProjectBoard({ project }: ProjectBoardProps) {
   console.log('ProjectBoard render - project items:', project.items.length)
@@ -86,7 +86,7 @@ function groupItemsByStatus(items: ProjectItem[]): Record<string, ProjectItem[]>
     const statusField = item.projectFields.find(field => 
       field.name.toLowerCase().includes('status')
     )
-    let status = statusField?.value || 'Artist Webmap Todo'
+    let status = statusField?.value || 'Artist Web Map TODO'
     
     // Normalize status to match our column order
     status = normalizeStatus(status)
