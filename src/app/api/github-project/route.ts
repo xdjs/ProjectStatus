@@ -267,7 +267,7 @@ export async function GET(request: NextRequest) {
     const message = statusMap[error.status] || `Failed to fetch project data: ${error.message}`
     return NextResponse.json({ error: message }, { status: error.status || 500 })
   }
-}
+} 
 
 // Force dynamic rendering - no caching
 export const dynamic = 'force-dynamic'
