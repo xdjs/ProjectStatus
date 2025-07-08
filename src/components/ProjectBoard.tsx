@@ -8,7 +8,23 @@ interface ProjectBoardProps {
 }
 
 // Predefined column order - using GitHub's exact case
-const COLUMN_ORDER = ['Artist Web Map TODO', 'MN Research TODO', 'Music Nerd NG TODO', 'Bonus', 'On Deck', 'In Progress', 'Done']
+const COLUMN_ORDER = ['Artist Webmap Todo', 'MN Research TODO', 'MusicNerd NG Todo', 'Bonus', 'On Deck', 'In Progress', 'Done']
+
+// Display name mapping - customize how column names appear on the board
+const DISPLAY_NAMES: Record<string, string> = {
+  'Artist Webmap TODO': 'Webmap TODO',
+  'MN Research TODO': 'Research TODO',
+  'MusicNerd NG TODO': 'NG TODO',
+  'Bonus': 'Bonus',
+  'On Deck': 'On Deck',
+  'In Progress': 'In Progress',
+  'Done': 'Done'
+}
+
+// Helper function to get display name
+function getDisplayName(status: string): string {
+  return DISPLAY_NAMES[status] || status
+}
 
 export function ProjectBoard({ project }: ProjectBoardProps) {
   console.log('ProjectBoard render - project items:', project.items.length)
@@ -50,7 +66,7 @@ function ProjectColumn({ status, items }: { status: string; items: ProjectItem[]
     <div className="space-y-2 lg:space-y-3">
       <div className="flex items-center justify-between sticky top-0 bg-card z-10 pb-2">
         <h4 className="font-medium text-xs lg:text-sm xl:text-base uppercase tracking-wide text-muted-foreground">
-          {status}
+          {getDisplayName(status)}
         </h4>
         <span className="text-xs bg-muted text-muted-foreground px-2 py-1 rounded-full">
           {items.length}
@@ -86,7 +102,7 @@ function groupItemsByStatus(items: ProjectItem[]): Record<string, ProjectItem[]>
     const statusField = item.projectFields.find(field => 
       field.name.toLowerCase().includes('status')
     )
-    let status = statusField?.value || 'Artist Web Map TODO'
+    let status = statusField?.value || 'Artist Webmap Todo'
     
     // Normalize status to match our column order
     status = normalizeStatus(status)
