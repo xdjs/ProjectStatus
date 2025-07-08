@@ -14,7 +14,7 @@ const COLUMN_ORDER = ['Artist Web Map TODO', 'MN Research TODO', 'Music Nerd NG 
 const DISPLAY_NAMES: Record<string, string> = {
   'Artist Web Map TODO': 'Webmap TODO',
   'MN Research TODO': 'Research TODO',
-  'MusicNerd NG TODO': 'NG TODO',
+  'Music Nerd NG TODO': 'NG TODO',
   'Bonus': 'Bonus',
   'On Deck': 'On Deck',
   'In Progress': 'In Progress',
