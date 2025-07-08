@@ -8,7 +8,7 @@ interface ProjectBoardProps {
 }
 
 // Predefined column order - using GitHub's exact case
-const COLUMN_ORDER = ['Artist Web Map TODO', 'MN Research TODO', 'MusicNerd NG TODO', 'Bonus', 'On Deck', 'In Progress', 'Done']
+const COLUMN_ORDER = ['Artist Web Map TODO', 'MN Research TODO', 'Music Nerd NG TODO', 'Bonus', 'On Deck', 'In Progress', 'Done']
 
 // Display name mapping - customize how column names appear on the board
 const DISPLAY_NAMES: Record<string, string> = {
