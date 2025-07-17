@@ -52,6 +52,8 @@ export interface ProjectData {
   title: string
   description?: string
   url: string
+  shortDescription?: string
+  readme?: string
   state: 'OPEN' | 'CLOSED'
   public: boolean
   createdAt: string
@@ -65,8 +67,9 @@ export interface ProjectData {
     description?: string
   }
   items: ProjectItem[]
-  configName?: string
-  todoColumns?: string[]
+  // Multi-project specific fields
+  projectName?: string
+  projectConfig?: ProjectConfig
   // Simplified - removed unused fields and views that aren't used in the UI
 }
 
