@@ -1,109 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { graphql } from '@octokit/graphql'
-import { getProjectConfigs, isMultiProjectMode } from '@/lib/config'
+import { getProjectConfigs } from '@/lib/config'
+import { GitHubClient } from '@/lib/github-client'
 import { ProjectConfig, ProjectData, MultiProjectData } from '@/types/github'
-
-// Shared fragments to eliminate duplication
-const PROJECT_FIELDS = `
-  id
-  number
-  title
-  shortDescription
-  readme
-  public
-  closed
-  createdAt
-  updatedAt
-  url
-  owner {
-    ... on User { login avatarUrl url }
-    ... on Organization { login avatarUrl url }
-  }
-  items(first: 100) {
-    nodes {
-      id
-      type
-      createdAt
-      updatedAt
-      content {
-        ... on Issue {
-          id title body url state createdAt updatedAt closedAt
-          author { login avatarUrl url }
-          assignees(first: 10) { nodes { login avatarUrl url } }
-          labels(first: 10) { nodes { name color description } }
-          milestone { title description dueOn state }
-          repository { name nameWithOwner url description }
-        }
-        ... on PullRequest {
-          id title body url state createdAt updatedAt closedAt mergedAt
-          author { login avatarUrl url }
-          assignees(first: 10) { nodes { login avatarUrl url } }
-          labels(first: 10) { nodes { name color description } }
-          milestone { title description dueOn state }
-          repository { name nameWithOwner url description }
-        }
-        ... on DraftIssue {
-          id title body createdAt updatedAt
-          creator { login avatarUrl url }
-          assignees(first: 10) { nodes { login avatarUrl url } }
-        }
-      }
-      fieldValues(first: 20) {
-        nodes {
-          ... on ProjectV2ItemFieldTextValue {
-            text
-            field { ... on ProjectV2FieldCommon { name } }
-          }
-          ... on ProjectV2ItemFieldNumberValue {
-            number
-            field { ... on ProjectV2FieldCommon { name } }
-          }
-          ... on ProjectV2ItemFieldSingleSelectValue {
-            name
-            field { ... on ProjectV2FieldCommon { name } }
-          }
-          ... on ProjectV2ItemFieldDateValue {
-            date
-            field { ... on ProjectV2FieldCommon { name } }
-          }
-        }
-      }
-    }
-  }
-  fields(first: 20) {
-    nodes {
-      ... on ProjectV2Field { id name dataType }
-      ... on ProjectV2SingleSelectField {
-        id name dataType
-        options { id name color }
-      }
-    }
-  }
-  views(first: 10) {
-    nodes {
-      id name layout
-      fields(first: 20) {
-        nodes { ... on ProjectV2Field { id name } }
-      }
-    }
-  }
-`
-
-const ORG_PROJECT_QUERY = `
-  query GetOrgProject($owner: String!, $number: Int!) {
-    organization(login: $owner) {
-      projectV2(number: $number) { ${PROJECT_FIELDS} }
-    }
-  }
-`
-
-const USER_PROJECT_QUERY = `
-  query GetUserProject($owner: String!, $number: Int!) {
-    user(login: $owner) {
-      projectV2(number: $number) { ${PROJECT_FIELDS} }
-    }
-  }
-`
 
 function transformProjectItem(item: any): any {
   const content = item.content
@@ -156,34 +54,7 @@ function transformProjectItem(item: any): any {
   }
 }
 
-async function fetchProject(graphqlWithAuth: any, owner: string, projectNumber: number, repo?: string) {
-  // Add cache-busting timestamp to queries
-  const timestamp = Date.now()
-  const cacheId = Math.random().toString(36).substring(7)
-  
-  // Try organization first, then user
-  const queries = [
-    { query: ORG_PROJECT_QUERY, accessor: (data: any) => data.organization?.projectV2 },
-    { query: USER_PROJECT_QUERY, accessor: (data: any) => data.user?.projectV2 }
-  ]
-  
-  for (const { query, accessor } of queries) {
-    try {
-      console.log(`Executing GraphQL query with cache-bust: ${timestamp}-${cacheId}`)
-      const data = await graphqlWithAuth(query, { 
-        owner, 
-        number: projectNumber,
-        _cacheBust: timestamp,
-        _requestId: cacheId
-      })
-      const project = accessor(data)
-      if (project) return project
-    } catch (error) {
-      // Continue to next query
-    }
-  }
-  throw new Error('Project not found in organization or user account')
-}
+// This function has been moved to GitHubClient class
 
 function transformProject(project: any, config: ProjectConfig): ProjectData {
   return {
@@ -213,27 +84,7 @@ function transformProject(project: any, config: ProjectConfig): ProjectData {
   }
 }
 
-async function fetchSingleProject(config: ProjectConfig, token: string): Promise<ProjectData> {
-  const graphqlWithAuth = graphql.defaults({
-    headers: {
-      authorization: `token ${token}`,
-      'X-GitHub-Api-Version': '2022-11-28',
-      'X-Request-ID': `${Date.now()}-${Math.random()}`, // Cache busting
-      'Cache-Control': 'no-cache, no-store, must-revalidate',
-      'Pragma': 'no-cache',
-      'If-None-Match': '*', // Force fresh response
-      'X-Fresh-Request': Date.now().toString()
-    },
-  })
-
-  console.log(`Fetching project data for ${config.name} from GitHub...`)
-  const startTime = Date.now()
-  const project = await fetchProject(graphqlWithAuth, config.owner, config.projectNumber, config.repo)
-  const fetchTime = Date.now() - startTime
-  console.log(`GitHub API response received in ${fetchTime}ms for ${config.name}`)
-
-  return transformProject(project, config)
-}
+// This function has been replaced by GitHubClient.fetchProject
 
 export async function GET(request: NextRequest) {
   try {
@@ -264,41 +115,24 @@ export async function GET(request: NextRequest) {
 
     console.log(`Fetching ${configs.length} projects: ${configs.map(c => c.name).join(', ')}`)
 
-    // Fetch all projects concurrently using Promise.allSettled
-    const projectPromises = configs.map(async (config) => {
-      try {
-        const project = await fetchSingleProject(config, token)
-        return { status: 'fulfilled' as const, value: project }
-      } catch (error: any) {
-        console.error(`Error fetching project ${config.name}:`, error)
-        return { 
-          status: 'rejected' as const, 
-          reason: error,
-          projectName: config.name
-        }
-      }
-    })
-
-    const results = await Promise.allSettled(projectPromises)
+    // Create GitHub client
+    const client = GitHubClient.create(token)
+    
+    // Fetch all projects concurrently using the client
+    const results = await client.fetchMultipleProjects(configs)
     
     // Process results
     const projects: ProjectData[] = []
     const errors: Array<{ projectName: string; error: string }> = []
 
-    results.forEach((result, index) => {
-      if (result.status === 'fulfilled') {
-        if (result.value.status === 'fulfilled') {
-          projects.push(result.value.value)
-        } else {
-          errors.push({
-            projectName: result.value.projectName,
-            error: result.value.reason?.message || 'Unknown error'
-          })
-        }
+    results.forEach((result) => {
+      if (result.success) {
+        const project = transformProject(result.data, configs.find(c => c.name === result.projectName)!)
+        projects.push(project)
       } else {
         errors.push({
-          projectName: configs[index].name,
-          error: result.reason?.message || 'Unknown error'
+          projectName: result.projectName,
+          error: result.error.message
         })
       }
     })
@@ -329,13 +163,11 @@ export async function GET(request: NextRequest) {
   } catch (error: any) {
     console.error('Multi-project API Error:', error)
     
-    const statusMap: Record<number, string> = {
-      401: 'Invalid GitHub token or insufficient permissions',
-      404: 'One or more projects not found. Check your owner and project numbers.'
-    }
+    // Use GitHub client's error handling utilities
+    const message = error.message || 'Unknown error'
+    const status = error.status || 500
     
-    const message = statusMap[error.status] || `Failed to fetch project data: ${error.message}`
-    return NextResponse.json({ error: message }, { status: error.status || 500 })
+    return NextResponse.json({ error: message }, { status })
   }
 }
 
