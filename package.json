@@ -25,6 +25,7 @@
   "devDependencies": {
     "@babel/plugin-syntax-typescript": "^7.27.1",
     "@babel/preset-env": "^7.28.0",
+    "@babel/preset-react": "^7.27.1",
     "@babel/preset-typescript": "^7.27.1",
     "@testing-library/jest-dom": "^6.1.4",
     "@testing-library/react": "^13.4.0",
