@@ -1,7 +1,9 @@
 # Multi-Project Dashboard Implementation Plan
 
 ## Overview
-Transform the current single-project GitHub dashboard into a multi-project dashboard that displays TODO items from multiple GitHub projects in a horizontal layout. Each project will have its own section, and all projects will be visible when the browser window is maximized.
+Transform the current single-project GitHub dashboard into a multi-project dashboard that displays TODO items from multiple GitHub Projects V2 in a horizontal layout. Each project will have its own section, and all projects will be visible when the browser window is maximized.
+
+**Important**: This implementation is for GitHub Projects V2 (the new project format), not classic GitHub projects.
 
 ## Current State Analysis
 - **Single Project Support**: Currently displays one GitHub project at a time

@@ -38,6 +38,14 @@ export interface ProjectItem {
   }>
 }
 
+export interface ProjectConfig {
+  name: string
+  owner: string
+  repo: string
+  projectNumber: number
+  todoColumns: string[]
+}
+
 export interface ProjectData {
   id: string
   number: number
@@ -57,5 +65,16 @@ export interface ProjectData {
     description?: string
   }
   items: ProjectItem[]
+  configName?: string
+  todoColumns?: string[]
   // Simplified - removed unused fields and views that aren't used in the UI
+}
+
+export interface MultiProjectData {
+  projects: ProjectData[]
+  lastFetched: string
+  errors: Array<{
+    projectName: string
+    error: string
+  }>
 } 
