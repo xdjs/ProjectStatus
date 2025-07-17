@@ -1,90 +1,10 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { getProjectConfigs } from '@/lib/config'
 import { GitHubClient } from '@/lib/github-client'
+import { transformProject, validateProjectData, sortProjects } from '@/lib/data-transform'
 import { ProjectConfig, ProjectData, MultiProjectData } from '@/types/github'
 
-function transformProjectItem(item: any): any {
-  const content = item.content
-  const baseItem = {
-    id: item.id,
-    createdAt: item.createdAt,
-    updatedAt: item.updatedAt,
-    projectFields: item.fieldValues.nodes.map((fv: any) => ({
-      name: fv.field?.name || 'Unknown',
-      value: fv.text || fv.number?.toString() || fv.name || fv.date || null
-    }))
-  }
-
-  // Debug: Log field values for debugging
-  if (content?.title) {
-    console.log(`Issue "${content.title}" field values:`, item.fieldValues.nodes.map((fv: any) => ({
-      field: fv.field?.name,
-      value: fv.text || fv.number?.toString() || fv.name || fv.date || null
-    })))
-  }
-
-  if (!content) {
-    return {
-      ...baseItem,
-      title: 'Draft Item',
-      body: '',
-      url: '',
-      state: 'OPEN',
-      type: 'DRAFT_ISSUE',
-      assignees: [],
-      labels: [],
-      author: { login: 'Unknown', avatarUrl: '', url: '' }
-    }
-  }
-
-  return {
-    ...baseItem,
-    title: content.title || 'Untitled',
-    body: content.body || '',
-    url: content.url || '',
-    state: content.state || 'OPEN',
-    type: item.type === 'PULL_REQUEST' ? 'PULL_REQUEST' : 
-          content.state !== undefined ? 'ISSUE' : 'DRAFT_ISSUE',
-    closedAt: content.closedAt,
-    mergedAt: content.mergedAt,
-    assignees: content.assignees?.nodes || [],
-    labels: content.labels?.nodes || [],
-    author: content.author || content.creator || { login: 'Unknown', avatarUrl: '', url: '' },
-    milestone: content.milestone
-  }
-}
-
-// This function has been moved to GitHubClient class
-
-function transformProject(project: any, config: ProjectConfig): ProjectData {
-  return {
-    id: project.id,
-    number: project.number,
-    title: project.title,
-    description: project.shortDescription,
-    url: project.url,
-    shortDescription: project.shortDescription,
-    readme: project.readme,
-    state: project.closed ? 'CLOSED' : 'OPEN',
-    public: project.public,
-    createdAt: project.createdAt,
-    updatedAt: project.updatedAt,
-    lastFetched: new Date().toISOString(),
-    owner: project.owner,
-    repository: project.items.nodes[0]?.content?.repository || {
-      name: config.repo || 'Unknown',
-      fullName: `${config.owner}/${config.repo || 'Unknown'}`,
-      url: `https://github.com/${config.owner}/${config.repo || ''}`,
-      description: ''
-    },
-    items: project.items.nodes.map(transformProjectItem),
-    // Multi-project specific fields
-    projectName: config.name,
-    projectConfig: config
-  }
-}
-
-// This function has been replaced by GitHubClient.fetchProject
+// Data transformation functions moved to @/lib/data-transform
 
 export async function GET(request: NextRequest) {
   try {
@@ -127,8 +47,17 @@ export async function GET(request: NextRequest) {
 
     results.forEach((result) => {
       if (result.success) {
-        const project = transformProject(result.data, configs.find(c => c.name === result.projectName)!)
-        projects.push(project)
+        // Validate project data before transformation
+        if (validateProjectData(result.data)) {
+          const config = configs.find(c => c.name === result.projectName)!
+          const project = transformProject(result.data, config)
+          projects.push(project)
+        } else {
+          errors.push({
+            projectName: result.projectName,
+            error: 'Invalid project data structure'
+          })
+        }
       } else {
         errors.push({
           projectName: result.projectName,
@@ -137,13 +66,16 @@ export async function GET(request: NextRequest) {
       }
     })
 
+    // Sort projects by name for consistent display
+    const sortedProjects = sortProjects(projects, 'name')
+
     const response: MultiProjectData = {
-      projects,
+      projects: sortedProjects,
       lastFetched: new Date().toISOString(),
       errors
     }
 
-    console.log(`Returning ${projects.length} projects with ${errors.length} errors`)
+    console.log(`Returning ${sortedProjects.length} projects with ${errors.length} errors`)
     if (errors.length > 0) {
       console.log('Errors:', errors)
     }
