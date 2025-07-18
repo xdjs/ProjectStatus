@@ -34,7 +34,16 @@ export function ProjectSection({ project }: ProjectSectionProps) {
         <div className="grid grid-cols-1 gap-3 min-w-0">
           {/* Project info */}
           <div className="min-w-0">
-            <h2 className="text-lg font-semibold truncate">{project.projectName || project.title}</h2>
+            <h2 className="text-lg font-semibold truncate">
+              <a 
+                href={project.url}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="hover:text-primary hover:underline transition-colors"
+              >
+                {project.projectName || project.title}
+              </a>
+            </h2>
             <div className="text-sm text-muted-foreground mt-1 truncate">
               {project.description ? (
                 <span>{project.description}</span>
