@@ -91,8 +91,8 @@ export function transformProject(project: any, config: ProjectConfig): ProjectDa
   // Transform all project items
   const allItems = project.items?.nodes?.map(transformProjectItem) || []
   
-  // Filter items by TODO columns for this project
-  const filteredItems = filterItemsByTodoColumns(allItems, config.todoColumns)
+  // Keep all items, filtering will be done in the UI layer
+  const filteredItems = allItems
   
   return {
     id: project.id,

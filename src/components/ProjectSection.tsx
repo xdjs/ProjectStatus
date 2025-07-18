@@ -28,7 +28,7 @@ export function ProjectSection({ project }: ProjectSectionProps) {
   })
 
   return (
-    <div className="bg-card rounded-lg border shadow-sm h-full flex flex-col">
+    <div className="bg-card rounded-lg border shadow-sm flex flex-col h-full">
       {/* Project header */}
       <div className="p-4 border-b flex-shrink-0">
         <div className="flex items-center justify-between">

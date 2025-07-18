@@ -56,7 +56,7 @@ export function MultiProjectDashboard({
   }
 
   return (
-    <div className="h-screen flex flex-col">
+    <div className="min-h-screen flex flex-col">
       {/* Header with stats */}
       <div className="bg-card border-b px-6 py-4 flex-shrink-0">
         <div className="flex items-center justify-between">
@@ -96,8 +96,8 @@ export function MultiProjectDashboard({
         </div>
       )}
 
-      {/* Projects grid - takes remaining height */}
-      <div className="flex-1 overflow-hidden">
+      {/* Projects grid - allows scrolling */}
+      <div className="flex-1 overflow-auto">
         <ProjectsGrid projects={projects} />
       </div>
     </div>
@@ -105,6 +105,11 @@ export function MultiProjectDashboard({
 }
 
 function ProjectsGrid({ projects }: { projects: ProjectData[] }) {
+  console.log('ProjectsGrid render:', {
+    totalProjects: projects.length,
+    projectNames: projects.map(p => p.projectName || p.title)
+  })
+
   if (projects.length === 0) {
     return (
       <div className="text-center py-12">
@@ -123,15 +128,21 @@ function ProjectsGrid({ projects }: { projects: ProjectData[] }) {
   }
 
   // For multiple projects, use horizontal grid layout
+  // Adjust columns based on project count: 2-3 projects = 2-3 cols, 4+ projects = 3 cols with wrapping
   const gridCols = Math.min(projects.length, 3) // Max 3 columns
   const gridStyle = { gridTemplateColumns: `repeat(${gridCols}, 1fr)` }
 
   return (
-    <div className="h-full p-6">
-      <div className="grid gap-6 h-full" style={gridStyle}>
-        {projects.map((project) => (
-          <ProjectSection key={project.id} project={project} />
-        ))}
+    <div className="p-6">
+      <div className="grid gap-6" style={gridStyle}>
+        {projects.map((project, index) => {
+          console.log(`Rendering project ${index + 1}:`, project.projectName || project.title)
+          return (
+            <div key={project.id} className="min-h-[400px]">
+              <ProjectSection project={project} />
+            </div>
+          )
+        })}
       </div>
     </div>
   )
