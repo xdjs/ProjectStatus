@@ -1,4 +1,5 @@
 import { GitHubClient, GitHubApiError } from '../github-client'
+import { EnhancedError } from '../error-handling'
 import { graphql } from '@octokit/graphql'
 import { ProjectConfig } from '@/types/github'
 
@@ -192,7 +193,7 @@ describe('GitHubClient', () => {
         .mockRejectedValueOnce(new Error('User not found'))
 
       await expect(client.fetchProject(mockProjectConfig))
-        .rejects.toThrow('Project not found in organization or user account')
+        .rejects.toThrow('Project not found')
     })
 
     it('should handle rate limit errors', async () => {
@@ -200,15 +201,15 @@ describe('GitHubClient', () => {
       mockGraphqlWithAuth.mockRejectedValue(rateLimitError)
 
       await expect(client.fetchProject(mockProjectConfig))
-        .rejects.toThrow(GitHubApiError)
-    })
+        .rejects.toThrow(EnhancedError)
+    }, 10000)
 
     it('should handle authentication errors', async () => {
       const authError = { status: 401, message: 'Bad credentials' }
       mockGraphqlWithAuth.mockRejectedValue(authError)
 
       await expect(client.fetchProject(mockProjectConfig))
-        .rejects.toThrow(GitHubApiError)
+        .rejects.toThrow(EnhancedError)
     })
 
     it('should include cache-busting parameters', async () => {
@@ -277,7 +278,7 @@ describe('GitHubClient', () => {
       expect(results[1].success).toBe(false)
       
       if (!results[1].success) {
-        expect(results[1].error).toBeInstanceOf(GitHubApiError)
+        expect(results[1].error).toBeInstanceOf(EnhancedError)
         expect(results[1].projectName).toBe('Project B')
       }
     })
@@ -293,11 +294,11 @@ describe('GitHubClient', () => {
       
       results.forEach((result, index) => {
         if (!result.success) {
-          expect(result.error).toBeInstanceOf(GitHubApiError)
+          expect(result.error).toBeInstanceOf(EnhancedError)
           expect(result.projectName).toBe(mockMultiProjectConfigs[index].name)
         }
       })
-    })
+    }, 10000)
 
     it('should handle Promise.allSettled rejections', async () => {
       // Mock a case where Promise.allSettled itself might have issues
@@ -310,7 +311,7 @@ describe('GitHubClient', () => {
       expect(results).toHaveLength(2)
       expect(results[0].success).toBe(false)
       expect(results[1].success).toBe(false)
-    })
+    }, 10000)
   })
 
   describe('validateToken', () => {

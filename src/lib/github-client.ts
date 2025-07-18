@@ -13,6 +13,14 @@
 
 import { graphql } from '@octokit/graphql'
 import { ProjectConfig } from '@/types/github'
+import { 
+  EnhancedError, 
+  classifyGitHubError, 
+  retryOperation, 
+  handleRateLimit,
+  ErrorContext,
+  logError
+} from './error-handling'
 
 // GitHub API rate limit and authentication errors
 export class GitHubApiError extends Error {
@@ -162,6 +170,64 @@ export class GitHubClient {
   }
 
   /**
+   * GraphQL query with enhanced error handling and retry logic
+   */
+  private async graphqlWithRetry(
+    query: string,
+    variables: any,
+    context: ErrorContext
+  ): Promise<any> {
+    return retryOperation(
+      async () => {
+        try {
+          return await this.graphqlWithAuth(query, variables)
+        } catch (error: any) {
+          // Handle rate limiting
+          if (this.isRateLimitError(error)) {
+            await handleRateLimit(error)
+            throw error // Will be retried
+          }
+          
+          // Classify and enhance the error
+          const enhancedError = classifyGitHubError(error)
+          enhancedError.context = context
+          
+          logError(enhancedError, context)
+          throw enhancedError
+        }
+      },
+      3, // Max retries
+      1000, // Base delay
+      context
+    )
+  }
+
+  /**
+   * Check if error is a rate limit error
+   */
+  private isRateLimitError(error: any): boolean {
+    return error.status === 403 && 
+           (error.message?.includes('rate limit') || 
+            error.message?.includes('API rate limit'))
+  }
+
+  /**
+   * Create error context for a project operation
+   */
+  private createErrorContext(
+    operation: string,
+    projectName: string,
+    metadata?: Record<string, any>
+  ): ErrorContext {
+    return {
+      operation,
+      projectName,
+      timestamp: new Date().toISOString(),
+      metadata
+    }
+  }
+
+  /**
    * Fetches a single project from GitHub Projects V2
    * Tries organization scope first, then user scope
    */
@@ -191,12 +257,18 @@ export class GitHubClient {
       try {
         console.log(`Fetching project ${config.name} from ${context} scope...`)
         
-        const data = await this.graphqlWithAuth(query, { 
+        const errorContext = this.createErrorContext(
+          `fetch_project_${context}`,
+          config.name,
+          { owner, projectNumber, context }
+        )
+        
+        const data = await this.graphqlWithRetry(query, { 
           owner, 
           number: projectNumber,
           _cacheBust: timestamp,
           _requestId: cacheId
-        })
+        }, errorContext)
         
         const project = accessor(data)
         if (project) {
@@ -205,17 +277,27 @@ export class GitHubClient {
         }
       } catch (error: any) {
         lastError = error
+        
+        // If this is a non-retryable error, don't try other scopes
+        if (error instanceof EnhancedError && !error.retryable) {
+          throw error
+        }
+        
         console.log(`Failed to fetch project ${config.name} from ${context} scope:`, error.message)
         // Continue to next query type
       }
     }
     
     // If we get here, both queries failed
-    throw new GitHubApiError(
-      `Project not found in organization or user account`,
-      lastError?.status || 404,
-      config.name
+    const enhancedError = new EnhancedError(
+      `Project not found in organization or user account: ${config.name}`,
+      'NOT_FOUND',
+      404,
+      false,
+      this.createErrorContext('fetch_project_not_found', config.name, { owner, projectNumber })
     )
+    
+    throw enhancedError
   }
 
   /**
@@ -234,13 +316,30 @@ export class GitHubClient {
         }
       } catch (error: any) {
         console.error(`Error fetching project ${config.name}:`, error)
+        
+        // If it's already an EnhancedError, use it directly
+        if (error instanceof EnhancedError) {
+          return {
+            success: false,
+            error: error,
+            projectName: config.name
+          }
+        }
+        
+        // Otherwise, create a new enhanced error
+        const enhancedError = error instanceof GitHubApiError ? 
+          classifyGitHubError(error) : 
+          new EnhancedError(
+            error.message || 'Unknown error',
+            'GENERIC_ERROR',
+            error.status || 500,
+            true,
+            this.createErrorContext('fetch_project_generic_error', config.name, { error: error.message })
+          )
+        
         return {
           success: false,
-          error: new GitHubApiError(
-            error.message,
-            error.status,
-            config.name
-          ),
+          error: enhancedError,
           projectName: config.name
         }
       }
@@ -252,13 +351,19 @@ export class GitHubClient {
       if (result.status === 'fulfilled') {
         return result.value
       } else {
+        console.error(`Promise rejected for project ${configs[index].name}:`, result.reason)
+        
+        const enhancedError = new EnhancedError(
+          result.reason?.message || 'Promise rejected',
+          'GENERIC_ERROR',
+          500,
+          true,
+          this.createErrorContext('fetch_project_promise_rejected', configs[index].name, { reason: result.reason })
+        )
+        
         return {
           success: false,
-          error: new GitHubApiError(
-            result.reason?.message || 'Unknown error',
-            result.reason?.status,
-            configs[index].name
-          ),
+          error: enhancedError,
           projectName: configs[index].name
         }
       }

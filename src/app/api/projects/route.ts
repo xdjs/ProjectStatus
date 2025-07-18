@@ -3,12 +3,22 @@ import { getProjectConfigs } from '@/lib/config'
 import { GitHubClient } from '@/lib/github-client'
 import { transformProject, validateProjectData, sortProjects } from '@/lib/data-transform'
 import { ProjectConfig, ProjectData, MultiProjectData } from '@/types/github'
+import { createErrorResponse, ErrorContext, logError } from '@/lib/error-handling'
 
 // Data transformation functions moved to @/lib/data-transform
 
 export async function GET(request: NextRequest) {
+  const context: ErrorContext = {
+    operation: 'multi_project_api',
+    timestamp: new Date().toISOString(),
+    metadata: {
+      url: request.url,
+      method: request.method
+    }
+  }
+  
   try {
-    console.log('Multi-project API request started at:', new Date().toISOString())
+    console.log('Multi-project API request started at:', context.timestamp)
     
     // Check for force refresh parameter
     const url = new URL(request.url)
@@ -20,16 +30,16 @@ export async function GET(request: NextRequest) {
     const token = process.env.GITHUB_TOKEN
     
     if (!token) {
-      return NextResponse.json(
-        { error: 'Missing GITHUB_TOKEN environment variable' },
-        { status: 500 }
+      return createErrorResponse(
+        new Error('Missing GITHUB_TOKEN environment variable'),
+        { ...context, operation: 'token_validation' }
       )
     }
 
     if (configs.length === 0) {
-      return NextResponse.json(
-        { error: 'No project configurations found' },
-        { status: 500 }
+      return createErrorResponse(
+        new Error('No project configurations found'),
+        { ...context, operation: 'config_validation' }
       )
     }
 
@@ -95,11 +105,7 @@ export async function GET(request: NextRequest) {
   } catch (error: any) {
     console.error('Multi-project API Error:', error)
     
-    // Use GitHub client's error handling utilities
-    const message = error.message || 'Unknown error'
-    const status = error.status || 500
-    
-    return NextResponse.json({ error: message }, { status })
+    return createErrorResponse(error, context)
   }
 }
 

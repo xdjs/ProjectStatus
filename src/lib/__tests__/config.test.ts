@@ -2,6 +2,7 @@ import {
   getProjectConfigs, 
   isMultiProjectMode, 
   validateGitHubToken, 
+  validateConfigurationLimits,
   ConfigurationError 
 } from '../config'
 
@@ -478,6 +479,86 @@ describe('Configuration Parser for GitHub Projects V2', () => {
       expect(() => validateGitHubToken()).toThrow('GITHUB_TOKEN appears to be invalid format')
 
       restore()
+    })
+
+    it('should throw error for token that is too short', () => {
+      const restore = mockEnv({
+        GITHUB_TOKEN: 'ghp_short'
+      })
+
+      expect(() => validateGitHubToken()).toThrow(ConfigurationError)
+      expect(() => validateGitHubToken()).toThrow('GITHUB_TOKEN appears to be too short')
+
+      restore()
+    })
+  })
+
+  describe('validateConfigurationLimits', () => {
+    it('should validate normal configuration', () => {
+      const configs = [
+        { name: 'Project A', owner: 'org1', repo: 'repo1', projectNumber: 1, todoColumns: ['TODO'] },
+        { name: 'Project B', owner: 'org2', repo: 'repo2', projectNumber: 2, todoColumns: ['Backlog'] }
+      ]
+
+      expect(() => validateConfigurationLimits(configs)).not.toThrow()
+    })
+
+    it('should throw error for too many projects', () => {
+      const configs = Array.from({ length: 11 }, (_, i) => ({
+        name: `Project ${i + 1}`,
+        owner: `org${i + 1}`,
+        repo: `repo${i + 1}`,
+        projectNumber: i + 1,
+        todoColumns: ['TODO']
+      }))
+
+      expect(() => validateConfigurationLimits(configs)).toThrow(ConfigurationError)
+      expect(() => validateConfigurationLimits(configs)).toThrow('Too many projects configured (11). Maximum recommended: 10')
+    })
+
+    it('should throw error for duplicate project names', () => {
+      const configs = [
+        { name: 'Project A', owner: 'org1', repo: 'repo1', projectNumber: 1, todoColumns: ['TODO'] },
+        { name: 'Project A', owner: 'org2', repo: 'repo2', projectNumber: 2, todoColumns: ['Backlog'] }
+      ]
+
+      expect(() => validateConfigurationLimits(configs)).toThrow(ConfigurationError)
+      expect(() => validateConfigurationLimits(configs)).toThrow('Duplicate project names found: project a. Project names must be unique.')
+    })
+
+    it('should throw error for duplicate owner/repo combinations', () => {
+      const configs = [
+        { name: 'Project A', owner: 'org1', repo: 'repo1', projectNumber: 1, todoColumns: ['TODO'] },
+        { name: 'Project B', owner: 'org1', repo: 'repo1', projectNumber: 2, todoColumns: ['Backlog'] }
+      ]
+
+      expect(() => validateConfigurationLimits(configs)).toThrow(ConfigurationError)
+      expect(() => validateConfigurationLimits(configs)).toThrow('Duplicate owner/repo combinations found: org1/repo1. Each project must be unique.')
+    })
+
+    it('should throw error for too many todo columns', () => {
+      const configs = [
+        { 
+          name: 'Project A', 
+          owner: 'org1', 
+          repo: 'repo1', 
+          projectNumber: 1, 
+          todoColumns: ['TODO', 'Backlog', 'In Progress', 'Review', 'Testing', 'Done'] 
+        }
+      ]
+
+      expect(() => validateConfigurationLimits(configs)).toThrow(ConfigurationError)
+      expect(() => validateConfigurationLimits(configs)).toThrow('Project 1 (Project A) has too many TODO columns (6). Maximum recommended: 5')
+    })
+
+    it('should handle case-insensitive project name duplicates', () => {
+      const configs = [
+        { name: 'Project A', owner: 'org1', repo: 'repo1', projectNumber: 1, todoColumns: ['TODO'] },
+        { name: 'project a', owner: 'org2', repo: 'repo2', projectNumber: 2, todoColumns: ['Backlog'] }
+      ]
+
+      expect(() => validateConfigurationLimits(configs)).toThrow(ConfigurationError)
+      expect(() => validateConfigurationLimits(configs)).toThrow('Duplicate project names found: project a. Project names must be unique.')
     })
   })
 })

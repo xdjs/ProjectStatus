@@ -137,7 +137,7 @@ describe('Multi-Project API Endpoint (Refactored)', () => {
       const data = await response.json()
 
       expect(response.status).toBe(500)
-      expect(data.error).toBe('Missing GITHUB_TOKEN environment variable')
+      expect(data.error).toBe('An unexpected error occurred. Please try again later.')
     })
 
     it('should return error if no project configurations found', async () => {
@@ -148,7 +148,7 @@ describe('Multi-Project API Endpoint (Refactored)', () => {
       const data = await response.json()
 
       expect(response.status).toBe(500)
-      expect(data.error).toBe('No project configurations found')
+      expect(data.error).toBe('An unexpected error occurred. Please try again later.')
     })
   })
 
@@ -292,7 +292,7 @@ describe('Multi-Project API Endpoint (Refactored)', () => {
       const data = await response.json()
 
       expect(response.status).toBe(500)
-      expect(data.error).toBe('Invalid token')
+      expect(data.error).toBe('An unexpected error occurred. Please try again later.')
     })
   })
 

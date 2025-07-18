@@ -145,13 +145,20 @@ function createLegacyProjectConfig(): ProjectConfig {
 export function getProjectConfigs(): ProjectConfig[] {
   const multiProjectConfig = process.env.PROJECTS_CONFIG?.trim()
   
+  let configs: ProjectConfig[]
+  
   if (multiProjectConfig) {
     // New multi-project format
-    return parseMultiProjectConfig(multiProjectConfig)
+    configs = parseMultiProjectConfig(multiProjectConfig)
   } else {
     // Legacy single-project format
-    return [createLegacyProjectConfig()]
+    configs = [createLegacyProjectConfig()]
   }
+  
+  // Validate configuration limits and consistency
+  validateConfigurationLimits(configs)
+  
+  return configs
 }
 
 /**
@@ -176,5 +183,43 @@ export function validateGitHubToken(): string {
     throw new ConfigurationError('GITHUB_TOKEN appears to be invalid format. Must be a GitHub personal access token.')
   }
 
+  // Check minimum length (GitHub tokens are typically longer)
+  if (token.length < 20) {
+    throw new ConfigurationError('GITHUB_TOKEN appears to be too short. Please verify your token is complete.')
+  }
+
   return token
+}
+
+/**
+ * Validates project configuration limits and provides usage recommendations
+ */
+export function validateConfigurationLimits(configs: ProjectConfig[]): void {
+  const maxProjects = 10
+  const maxTodoColumns = 5
+  
+  if (configs.length > maxProjects) {
+    throw new ConfigurationError(`Too many projects configured (${configs.length}). Maximum recommended: ${maxProjects}`)
+  }
+  
+  // Check for duplicate project names
+  const projectNames = configs.map(config => config.name.toLowerCase())
+  const duplicates = projectNames.filter((name, index) => projectNames.indexOf(name) !== index)
+  if (duplicates.length > 0) {
+    throw new ConfigurationError(`Duplicate project names found: ${duplicates.join(', ')}. Project names must be unique.`)
+  }
+  
+  // Check for duplicate owner/repo combinations
+  const projectKeys = configs.map(config => `${config.owner}/${config.repo}`)
+  const duplicateKeys = projectKeys.filter((key, index) => projectKeys.indexOf(key) !== index)
+  if (duplicateKeys.length > 0) {
+    throw new ConfigurationError(`Duplicate owner/repo combinations found: ${duplicateKeys.join(', ')}. Each project must be unique.`)
+  }
+  
+  // Validate todo columns count
+  configs.forEach((config, index) => {
+    if (config.todoColumns.length > maxTodoColumns) {
+      throw new ConfigurationError(`Project ${index + 1} (${config.name}) has too many TODO columns (${config.todoColumns.length}). Maximum recommended: ${maxTodoColumns}`)
+    }
+  })
 }
