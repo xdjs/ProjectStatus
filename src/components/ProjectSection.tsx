@@ -41,7 +41,7 @@ export function ProjectSection({ project }: ProjectSectionProps) {
           </div>
           
           {/* Stats section - always on its own row for better space */}
-          <div className="flex items-center justify-end space-x-4 text-sm">
+          <div className="flex items-center justify-start space-x-4 text-sm">
             <div className="text-center">
               <div className="font-semibold text-primary">{todoItems.length}</div>
               <div className="text-muted-foreground text-xs">TODO Items</div>
