@@ -127,18 +127,14 @@ function ProjectsGrid({ projects }: { projects: ProjectData[] }) {
     )
   }
 
-  // For multiple projects, use horizontal grid layout
-  // Display all projects horizontally regardless of count
-  const gridCols = projects.length // Use actual project count
-  const gridStyle = { gridTemplateColumns: `repeat(${gridCols}, 1fr)` }
-
+  // For multiple projects, use flexbox layout for better wrapping control
   return (
-    <div className="py-2 px-2 overflow-x-auto h-full">
-      <div className="grid gap-2 min-w-fit h-full" style={gridStyle}>
+    <div className="py-2 px-2 h-full">
+      <div className="flex gap-2 h-full">
         {projects.map((project, index) => {
           console.log(`Rendering project ${index + 1}:`, project.projectName || project.title)
           return (
-            <div key={project.id} className="h-full min-w-[300px]">
+            <div key={project.id} className="h-full flex-1 min-w-0">
               <ProjectSection project={project} />
             </div>
           )
