@@ -31,21 +31,24 @@ export function ProjectSection({ project }: ProjectSectionProps) {
     <div className="bg-card rounded-lg border shadow-sm flex flex-col h-full">
       {/* Project header */}
       <div className="p-4 border-b flex-shrink-0">
-        <div className="flex items-center justify-between">
-          <div>
-            <h2 className="text-lg font-semibold">{project.projectName || project.title}</h2>
-            <p className="text-sm text-muted-foreground mt-1">
+        <div className="grid grid-cols-1 gap-3 min-w-0">
+          {/* Project info */}
+          <div className="min-w-0">
+            <h2 className="text-lg font-semibold truncate">{project.projectName || project.title}</h2>
+            <p className="text-sm text-muted-foreground mt-1 truncate">
               {project.description || `${project.owner?.login}/${project.repository?.name}`}
             </p>
           </div>
-          <div className="flex items-center space-x-4 text-sm">
+          
+          {/* Stats section - always on its own row for better space */}
+          <div className="flex items-center justify-end space-x-4 text-sm">
             <div className="text-center">
               <div className="font-semibold text-primary">{todoItems.length}</div>
-              <div className="text-muted-foreground">TODO Items</div>
+              <div className="text-muted-foreground text-xs">TODO Items</div>
             </div>
             <div className="text-center">
               <div className="font-semibold">{project.items.length}</div>
-              <div className="text-muted-foreground">Total Items</div>
+              <div className="text-muted-foreground text-xs">Total Items</div>
             </div>
           </div>
         </div>
