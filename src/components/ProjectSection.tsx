@@ -31,14 +31,14 @@ export function ProjectSection({ project }: ProjectSectionProps) {
     <div className="bg-card rounded-lg border shadow-sm flex flex-col h-full">
       {/* Project header */}
       <div className="p-4 border-b flex-shrink-0">
-        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
-          <div className="min-w-0 flex-1">
-            <h2 className="text-lg font-semibold truncate">{project.projectName || project.title}</h2>
-            <p className="text-sm text-muted-foreground mt-1 truncate">
+        <div className="flex items-center justify-between">
+          <div>
+            <h2 className="text-lg font-semibold">{project.projectName || project.title}</h2>
+            <p className="text-sm text-muted-foreground mt-1">
               {project.description || `${project.owner?.login}/${project.repository?.name}`}
             </p>
           </div>
-          <div className="flex items-center space-x-4 text-sm flex-shrink-0">
+          <div className="flex items-center space-x-4 text-sm">
             <div className="text-center">
               <div className="font-semibold text-primary">{todoItems.length}</div>
               <div className="text-muted-foreground">TODO Items</div>
