@@ -23,8 +23,8 @@ export default function Home() {
   const [error, setError] = useState<string | null>(null)
   const [isMultiProject, setIsMultiProject] = useState(false)
   
-  // Get polling interval from environment variable or use default
-  const pollingInterval = parseInt(process.env.NEXT_PUBLIC_POLLING_INTERVAL || '60000', 10)
+  // Get polling interval from environment variable or use default (5 minutes)
+  const pollingInterval = parseInt(process.env.NEXT_PUBLIC_POLLING_INTERVAL || '300000', 10)
 
   // Debug: Track when data state changes
   useEffect(() => {

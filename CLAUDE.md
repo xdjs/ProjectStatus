@@ -20,7 +20,7 @@ Required environment variables in `.env.local`:
 - `GITHUB_OWNER` - Repository owner or organization name
 - `GITHUB_REPO` - Repository name (optional, for display)
 - `PROJECT_NUMBER` - GitHub project number from URL
-- `NEXT_PUBLIC_POLLING_INTERVAL` - Polling interval in milliseconds (default: 60000 = 1 minute)
+- `NEXT_PUBLIC_POLLING_INTERVAL` - Polling interval in milliseconds (default: 300000 = 5 minutes)
 
 ## Architecture Overview
 
@@ -100,7 +100,7 @@ NEXT_PUBLIC_POLLING_INTERVAL=30000  # 30 seconds (in milliseconds)
 
 You can also modify it directly in `src/app/page.tsx` if needed:
 ```typescript
-const pollingInterval = parseInt(process.env.NEXT_PUBLIC_POLLING_INTERVAL || '60000', 10)
+const pollingInterval = parseInt(process.env.NEXT_PUBLIC_POLLING_INTERVAL || '300000', 10)
 const interval = setInterval(fetchProjectData, pollingInterval)
 ```
 
