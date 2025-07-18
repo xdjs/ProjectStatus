@@ -58,7 +58,7 @@ export function MultiProjectDashboard({
   return (
     <div className="min-h-screen flex flex-col">
       {/* Header with stats */}
-      <div className="bg-card border-b px-6 py-4 flex-shrink-0">
+      <div className="bg-card border-b px-2 py-2 flex-shrink-0">
         <div className="flex items-center justify-between">
           <div>
             <h1 className="text-xl font-semibold">Multi-Project Dashboard</h1>
@@ -86,7 +86,7 @@ export function MultiProjectDashboard({
 
       {/* Error notifications */}
       {errors.length > 0 && (
-        <div className="bg-destructive/10 border-b border-destructive/20 px-6 py-3 flex-shrink-0">
+        <div className="bg-destructive/10 border-b border-destructive/20 px-2 py-2 flex-shrink-0">
           <div className="flex items-center space-x-2">
             <div className="text-destructive font-medium">⚠️ Some projects failed to load:</div>
             <div className="text-sm text-destructive/80">
@@ -121,7 +121,7 @@ function ProjectsGrid({ projects }: { projects: ProjectData[] }) {
   // For single project, use full height
   if (projects.length === 1) {
     return (
-      <div className="h-full p-6">
+      <div className="h-full py-2 px-2">
         <ProjectSection project={projects[0]} />
       </div>
     )
@@ -133,12 +133,12 @@ function ProjectsGrid({ projects }: { projects: ProjectData[] }) {
   const gridStyle = { gridTemplateColumns: `repeat(${gridCols}, 1fr)` }
 
   return (
-    <div className="p-6 overflow-x-auto">
-      <div className="grid gap-6 min-w-fit" style={gridStyle}>
+    <div className="py-2 px-2 overflow-x-auto h-full">
+      <div className="grid gap-2 min-w-fit h-full" style={gridStyle}>
         {projects.map((project, index) => {
           console.log(`Rendering project ${index + 1}:`, project.projectName || project.title)
           return (
-            <div key={project.id} className="min-h-[400px] min-w-[300px]">
+            <div key={project.id} className="h-full min-w-[300px]">
               <ProjectSection project={project} />
             </div>
           )

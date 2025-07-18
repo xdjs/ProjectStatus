@@ -254,7 +254,7 @@ export default function Home() {
   })
 
   return (
-    <main className="container mx-auto px-4 py-8">
+    <main className="w-full min-h-screen">
       {isMultiProject && data && isMultiProjectData(data) ? (
         <MultiProjectDashboard 
           multiProjectData={data} 
@@ -286,7 +286,7 @@ export default function Home() {
 
 function LoadingState() {
   return (
-    <main className="container mx-auto px-4 py-8">
+    <main className="w-full min-h-screen flex items-center justify-center">
       <div className="text-center">
         <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary mx-auto"></div>
         <p className="mt-4 text-muted-foreground">Loading project data...</p>
@@ -297,7 +297,7 @@ function LoadingState() {
 
 function ErrorState({ error, onRetry }: { error: string; onRetry: () => void }) {
   return (
-    <main className="container mx-auto px-4 py-8">
+    <main className="w-full min-h-screen flex items-center justify-center">
       <div className="text-center max-w-lg mx-auto">
         <h1 className="text-2xl font-bold mb-4">Configuration Required</h1>
         <p className="text-destructive mb-4">Error: {error}</p>
