@@ -20,6 +20,7 @@ Required environment variables in `.env.local`:
 - `GITHUB_OWNER` - Repository owner or organization name
 - `GITHUB_REPO` - Repository name (optional, for display)
 - `PROJECT_NUMBER` - GitHub project number from URL
+- `NEXT_PUBLIC_POLLING_INTERVAL` - Polling interval in milliseconds (default: 60000 = 1 minute)
 
 ## Architecture Overview
 
@@ -92,9 +93,15 @@ The application is designed for easy deployment on platforms like Vercel:
 ## Customization
 
 ### Update Frequency
-Modify polling interval in `src/app/page.tsx`:
+Modify polling interval by setting the `NEXT_PUBLIC_POLLING_INTERVAL` environment variable in `.env.local`:
+```env
+NEXT_PUBLIC_POLLING_INTERVAL=30000  # 30 seconds (in milliseconds)
+```
+
+You can also modify it directly in `src/app/page.tsx` if needed:
 ```typescript
-const interval = setInterval(fetchProjectData, 30000) // 30 seconds
+const pollingInterval = parseInt(process.env.NEXT_PUBLIC_POLLING_INTERVAL || '60000', 10)
+const interval = setInterval(fetchProjectData, pollingInterval)
 ```
 
 ### Column Layout

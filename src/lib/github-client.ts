@@ -206,7 +206,17 @@ export class GitHubClient {
       } catch (error: any) {
         lastError = error
         console.log(`Failed to fetch project ${config.name} from ${context} scope:`, error.message)
-        // Continue to next query type
+        
+        // If it's a rate limit error, throw immediately instead of trying more queries
+        if (GitHubClient.isRateLimitError(error)) {
+          throw new GitHubApiError(
+            'GitHub API rate limit exceeded. Please wait before trying again.',
+            429,
+            config.name
+          )
+        }
+        
+        // Continue to next query type for other errors
       }
     }
     

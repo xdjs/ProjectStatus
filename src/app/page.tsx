@@ -22,6 +22,9 @@ export default function Home() {
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
   const [isMultiProject, setIsMultiProject] = useState(false)
+  
+  // Get polling interval from environment variable or use default
+  const pollingInterval = parseInt(process.env.NEXT_PUBLIC_POLLING_INTERVAL || '60000', 10)
 
   // Debug: Track when data state changes
   useEffect(() => {
@@ -147,8 +150,9 @@ export default function Home() {
       console.log('SSE connection failed, falling back to polling...')
     }
     
-    // Set up polling as fallback (every 10 seconds for responsiveness to column changes)
-    const interval = setInterval(fetchProjectData, 10000)
+    // Set up polling as fallback (configurable interval to avoid rate limits)
+    console.log(`Setting up polling with ${pollingInterval}ms interval`)
+    const interval = setInterval(fetchProjectData, pollingInterval)
     
     // Keep screen awake for TV display
     let wakeLock: WakeLockSentinel | null = null
