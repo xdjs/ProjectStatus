@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { graphql } from '@octokit/graphql'
+import { GitHubClient } from '@/lib/github-client'
 
 // Shared fragments to eliminate duplication
 const PROJECT_FIELDS = `
