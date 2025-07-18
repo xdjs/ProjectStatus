@@ -35,9 +35,20 @@ export function ProjectSection({ project }: ProjectSectionProps) {
           {/* Project info */}
           <div className="min-w-0">
             <h2 className="text-lg font-semibold truncate">{project.projectName || project.title}</h2>
-            <p className="text-sm text-muted-foreground mt-1 truncate">
-              {project.description || `${project.owner?.login}/${project.repository?.name}`}
-            </p>
+            <div className="text-sm text-muted-foreground mt-1 truncate">
+              {project.description ? (
+                <span>{project.description}</span>
+              ) : (
+                <a 
+                  href={project.repository?.url}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="hover:text-primary hover:underline transition-colors"
+                >
+                  {project.owner?.login}/{project.repository?.name}
+                </a>
+              )}
+            </div>
           </div>
           
           {/* Stats section - always on its own row for better space */}
