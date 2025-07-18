@@ -147,8 +147,8 @@ export default function Home() {
       console.log('SSE connection failed, falling back to polling...')
     }
     
-    // Set up polling as fallback (every 10 seconds for responsiveness to column changes)
-    const interval = setInterval(fetchProjectData, 10000)
+    // Set up polling as fallback (every 60 seconds to avoid rate limits)
+    const interval = setInterval(fetchProjectData, 60000)
     
     // Keep screen awake for TV display
     let wakeLock: WakeLockSentinel | null = null

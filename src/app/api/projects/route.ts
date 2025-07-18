@@ -39,7 +39,9 @@ export async function GET(request: NextRequest) {
     const client = GitHubClient.create(token)
     
     // Fetch all projects concurrently using the client
+    console.log('Starting concurrent project fetch...')
     const results = await client.fetchMultipleProjects(configs)
+    console.log(`Fetch completed. Processing ${results.length} results...`)
     
     // Process results
     const projects: ProjectData[] = []
@@ -59,9 +61,14 @@ export async function GET(request: NextRequest) {
           })
         }
       } else {
+        // Use the GitHub client's error message helper for better messages
+        const errorMessage = result.error.status === 429 
+          ? 'Rate limit exceeded - please wait before retrying'
+          : result.error.message
+          
         errors.push({
           projectName: result.projectName,
-          error: result.error.message
+          error: errorMessage
         })
       }
     })
