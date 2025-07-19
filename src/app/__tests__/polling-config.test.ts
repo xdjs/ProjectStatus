@@ -22,72 +22,72 @@ describe('Polling Interval Configuration', () => {
 
     it('should use default when environment variable is not set', () => {
       delete process.env.NEXT_PUBLIC_POLLING_INTERVAL
-      const interval = parseInt(process.env.NEXT_PUBLIC_POLLING_INTERVAL || '60000', 10)
-      expect(interval).toBe(60000)
+      const interval = parseInt(process.env.NEXT_PUBLIC_POLLING_INTERVAL || '300000', 10)
+      expect(interval).toBe(300000)
     })
 
     it('should handle invalid values gracefully', () => {
       process.env.NEXT_PUBLIC_POLLING_INTERVAL = 'invalid'
-      const interval = parseInt(process.env.NEXT_PUBLIC_POLLING_INTERVAL || '60000', 10)
+      const interval = parseInt(process.env.NEXT_PUBLIC_POLLING_INTERVAL || '300000', 10)
       // parseInt('invalid') returns NaN, but we can test the fallback
       expect(isNaN(interval)).toBe(true)
       
       // Test with fallback logic
-      const finalInterval = isNaN(interval) ? 60000 : interval
-      expect(finalInterval).toBe(60000)
+      const finalInterval = isNaN(interval) ? 300000 : interval
+      expect(finalInterval).toBe(300000)
     })
 
     it('should handle zero values', () => {
       process.env.NEXT_PUBLIC_POLLING_INTERVAL = '0'
-      const interval = parseInt(process.env.NEXT_PUBLIC_POLLING_INTERVAL || '60000', 10)
+      const interval = parseInt(process.env.NEXT_PUBLIC_POLLING_INTERVAL || '300000', 10)
       expect(interval).toBe(0)
       
       // Test with validation logic
-      const finalInterval = interval > 0 ? interval : 60000
-      expect(finalInterval).toBe(60000)
+      const finalInterval = interval > 0 ? interval : 300000
+      expect(finalInterval).toBe(300000)
     })
 
     it('should handle negative values', () => {
       process.env.NEXT_PUBLIC_POLLING_INTERVAL = '-5000'
-      const interval = parseInt(process.env.NEXT_PUBLIC_POLLING_INTERVAL || '60000', 10)
+      const interval = parseInt(process.env.NEXT_PUBLIC_POLLING_INTERVAL || '300000', 10)
       expect(interval).toBe(-5000)
       
       // Test with validation logic
-      const finalInterval = interval > 0 ? interval : 60000
-      expect(finalInterval).toBe(60000)
+      const finalInterval = interval > 0 ? interval : 300000
+      expect(finalInterval).toBe(300000)
     })
 
     it('should handle large values', () => {
-      process.env.NEXT_PUBLIC_POLLING_INTERVAL = '300000' // 5 minutes
-      const interval = parseInt(process.env.NEXT_PUBLIC_POLLING_INTERVAL || '60000', 10)
-      expect(interval).toBe(300000)
+      process.env.NEXT_PUBLIC_POLLING_INTERVAL = '600000' // 10 minutes
+      const interval = parseInt(process.env.NEXT_PUBLIC_POLLING_INTERVAL || '300000', 10)
+      expect(interval).toBe(600000)
     })
 
     it('should handle values with decimals', () => {
-      process.env.NEXT_PUBLIC_POLLING_INTERVAL = '45000.5'
-      const interval = parseInt(process.env.NEXT_PUBLIC_POLLING_INTERVAL || '60000', 10)
-      expect(interval).toBe(45000) // parseInt truncates decimals
+      process.env.NEXT_PUBLIC_POLLING_INTERVAL = '450000.5'
+      const interval = parseInt(process.env.NEXT_PUBLIC_POLLING_INTERVAL || '300000', 10)
+      expect(interval).toBe(450000) // parseInt truncates decimals
     })
   })
 
   describe('configuration validation', () => {
     const validatePollingInterval = (envValue: string | undefined): number => {
-      const parsed = parseInt(envValue || '60000', 10)
-      return isNaN(parsed) || parsed <= 0 ? 60000 : parsed
+      const parsed = parseInt(envValue || '300000', 10)
+      return isNaN(parsed) || parsed <= 0 ? 300000 : parsed
     }
 
     it('should validate and return correct intervals', () => {
       expect(validatePollingInterval('30000')).toBe(30000)
-      expect(validatePollingInterval('60000')).toBe(60000)
-      expect(validatePollingInterval('120000')).toBe(120000)
+      expect(validatePollingInterval('300000')).toBe(300000)
+      expect(validatePollingInterval('600000')).toBe(600000)
     })
 
     it('should return default for invalid inputs', () => {
-      expect(validatePollingInterval('invalid')).toBe(60000)
-      expect(validatePollingInterval('0')).toBe(60000)
-      expect(validatePollingInterval('-1000')).toBe(60000)
-      expect(validatePollingInterval('')).toBe(60000)
-      expect(validatePollingInterval(undefined)).toBe(60000)
+      expect(validatePollingInterval('invalid')).toBe(300000)
+      expect(validatePollingInterval('0')).toBe(300000)
+      expect(validatePollingInterval('-1000')).toBe(300000)
+      expect(validatePollingInterval('')).toBe(300000)
+      expect(validatePollingInterval(undefined)).toBe(300000)
     })
 
     it('should handle edge cases', () => {

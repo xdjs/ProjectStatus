@@ -22,9 +22,11 @@ export default function Home() {
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
   const [isMultiProject, setIsMultiProject] = useState(false)
+  const [nextUpdateTime, setNextUpdateTime] = useState<number>(0)
+  const [timeUntilUpdate, setTimeUntilUpdate] = useState<number>(0)
   
-  // Get polling interval from environment variable or use default
-  const pollingInterval = parseInt(process.env.NEXT_PUBLIC_POLLING_INTERVAL || '60000', 10)
+  // Get polling interval from environment variable or use default (5 minutes)
+  const pollingInterval = parseInt(process.env.NEXT_PUBLIC_POLLING_INTERVAL || '300000', 10)
 
   // Debug: Track when data state changes
   useEffect(() => {
@@ -44,6 +46,17 @@ export default function Home() {
       })
     }
   }, [data])
+
+  // Countdown timer effect
+  useEffect(() => {
+    const countdownInterval = setInterval(() => {
+      const now = Date.now()
+      const remaining = Math.max(0, nextUpdateTime - now)
+      setTimeUntilUpdate(remaining)
+    }, 1000)
+
+    return () => clearInterval(countdownInterval)
+  }, [nextUpdateTime])
 
   useEffect(() => {
     const fetchProjectData = async () => {
@@ -118,6 +131,8 @@ export default function Home() {
         setError(err instanceof Error ? err.message : 'Failed to fetch project data')
       } finally {
         setLoading(false)
+        // Set next update time
+        setNextUpdateTime(Date.now() + pollingInterval)
       }
     }
 
@@ -186,7 +201,7 @@ export default function Home() {
         wakeLock.release()
       }
     }
-  }, [])
+  }, [pollingInterval])
 
   if (loading && !data) {
     return <LoadingState />
@@ -241,6 +256,8 @@ export default function Home() {
       setError(err instanceof Error ? err.message : 'Failed to fetch project data')
     } finally {
       setLoading(false)
+      // Set next update time
+      setNextUpdateTime(Date.now() + pollingInterval)
     }
   }
 
@@ -265,6 +282,7 @@ export default function Home() {
           loading={loading}
           error={error}
           onReconfigure={handleReconfigure}
+          timeUntilUpdate={timeUntilUpdate}
         />
       ) : data && isSingleProjectData(data) ? (
         <ProjectDashboard 

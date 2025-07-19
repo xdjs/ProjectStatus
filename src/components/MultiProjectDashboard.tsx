@@ -4,18 +4,33 @@ import React from 'react'
 import { MultiProjectData, ProjectData } from '@/types/github'
 import { ProjectSection } from './ProjectSection'
 
+// Helper function to format time until next update
+function formatTimeUntilUpdate(milliseconds: number): string {
+  if (milliseconds <= 0) {
+    return 'Updating...'
+  }
+  
+  const totalSeconds = Math.ceil(milliseconds / 1000)
+  const minutes = Math.floor(totalSeconds / 60)
+  const seconds = totalSeconds % 60
+  
+  return `${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`
+}
+
 interface MultiProjectDashboardProps {
   multiProjectData: MultiProjectData | null
   loading: boolean
   error: string | null
   onReconfigure: () => void
+  timeUntilUpdate: number
 }
 
 export function MultiProjectDashboard({ 
   multiProjectData, 
   loading, 
   error, 
-  onReconfigure 
+  onReconfigure,
+  timeUntilUpdate 
 }: MultiProjectDashboardProps) {
   console.log('MultiProjectDashboard render:', {
     hasData: !!multiProjectData,
@@ -65,6 +80,9 @@ export function MultiProjectDashboard({
             <p className="text-sm text-muted-foreground">
               {projects.length} project{projects.length !== 1 ? 's' : ''} loaded
               {errors.length > 0 && ` • ${errors.length} error${errors.length !== 1 ? 's' : ''}`}
+            </p>
+            <p className="text-xs text-muted-foreground/75 mt-1">
+              Updating in {formatTimeUntilUpdate(timeUntilUpdate)}
             </p>
           </div>
           <div className="flex items-center space-x-4 text-sm">
