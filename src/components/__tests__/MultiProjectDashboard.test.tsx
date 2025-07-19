@@ -105,6 +105,7 @@ describe('MultiProjectDashboard', () => {
           loading={false} 
           error={null} 
           onReconfigure={mockOnReconfigure} 
+          timeUntilUpdate={300000}
         />
       )
       
@@ -127,6 +128,7 @@ describe('MultiProjectDashboard', () => {
           loading={false} 
           error={null} 
           onReconfigure={mockOnReconfigure} 
+          timeUntilUpdate={300000}
         />
       )
       
@@ -150,6 +152,7 @@ describe('MultiProjectDashboard', () => {
           loading={false} 
           error={null} 
           onReconfigure={mockOnReconfigure} 
+          timeUntilUpdate={300000}
         />
       )
       
@@ -168,6 +171,7 @@ describe('MultiProjectDashboard', () => {
           loading={false} 
           error={null} 
           onReconfigure={mockOnReconfigure} 
+          timeUntilUpdate={300000}
         />
       )
       
@@ -183,6 +187,7 @@ describe('MultiProjectDashboard', () => {
           loading={false} 
           error={null} 
           onReconfigure={mockOnReconfigure} 
+          timeUntilUpdate={300000}
         />
       )
       
@@ -250,6 +255,7 @@ describe('MultiProjectDashboard', () => {
           loading={false} 
           error={null} 
           onReconfigure={mockOnReconfigure} 
+          timeUntilUpdate={300000}
         />
       )
       
@@ -265,6 +271,7 @@ describe('MultiProjectDashboard', () => {
           loading={false} 
           error={null} 
           onReconfigure={mockOnReconfigure} 
+          timeUntilUpdate={300000}
         />
       )
       
@@ -299,6 +306,7 @@ describe('MultiProjectDashboard', () => {
           loading={false} 
           error={null} 
           onReconfigure={mockOnReconfigure} 
+          timeUntilUpdate={300000}
         />
       )
       
@@ -323,6 +331,7 @@ describe('MultiProjectDashboard', () => {
           loading={false} 
           error={null} 
           onReconfigure={mockOnReconfigure} 
+          timeUntilUpdate={300000}
         />
       )
       
@@ -344,10 +353,59 @@ describe('MultiProjectDashboard', () => {
           loading={false} 
           error={null} 
           onReconfigure={mockOnReconfigure} 
+          timeUntilUpdate={300000}
         />
       )
       
       expect(screen.getByText('No projects to display')).toBeInTheDocument()
+    })
+  })
+
+  describe('Polling status display', () => {
+    it('should display countdown timer in mm:ss format', () => {
+      const timeUntilUpdate = 125000 // 2 minutes 5 seconds
+      
+      render(
+        <MultiProjectDashboard 
+          multiProjectData={mockMultiProjectData} 
+          loading={false} 
+          error={null} 
+          onReconfigure={mockOnReconfigure} 
+          timeUntilUpdate={timeUntilUpdate}
+        />
+      )
+      
+      expect(screen.getByText('Updating in 02:05')).toBeInTheDocument()
+    })
+
+    it('should show "Updating..." when time is zero or negative', () => {
+      render(
+        <MultiProjectDashboard 
+          multiProjectData={mockMultiProjectData} 
+          loading={false} 
+          error={null} 
+          onReconfigure={mockOnReconfigure} 
+          timeUntilUpdate={0}
+        />
+      )
+      
+      expect(screen.getByText('Updating in Updating...')).toBeInTheDocument()
+    })
+
+    it('should format single digit minutes and seconds with leading zeros', () => {
+      const timeUntilUpdate = 65000 // 1 minute 5 seconds
+      
+      render(
+        <MultiProjectDashboard 
+          multiProjectData={mockMultiProjectData} 
+          loading={false} 
+          error={null} 
+          onReconfigure={mockOnReconfigure} 
+          timeUntilUpdate={timeUntilUpdate}
+        />
+      )
+      
+      expect(screen.getByText('Updating in 01:05')).toBeInTheDocument()
     })
   })
 })
